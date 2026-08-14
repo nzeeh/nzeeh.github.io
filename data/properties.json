@@ -1,0 +1,116 @@
+[
+  {
+    "id": 1,
+    "status": "sale",
+    "type": "heritage",
+    "loc": "Old Sana'a",
+    "name": {"en": "Restored Tower House", "ar": "بيت برج صنعاني مرمم"},
+    "price": 640000,
+    "currency": "USD",
+    "beds": 6,
+    "baths": 4,
+    "area": 510,
+    "featured": true,
+    "coverImage": "",
+    "mapUrl": "",
+    "desc": {
+      "en": "A carefully restored multi-level residence with warm fired brick, white gypsum bands, qamariya-inspired glazing and a private upper majlis.",
+      "ar": "منزل متعدد الطوابق جرى ترميمه بعناية، يجمع الطوب المحروق والزخارف الجبسية البيضاء ونوافذ مستلهمة من القمريات ومجلسًا علويًا خاصًا."
+    }
+  },
+  {
+    "id": 2,
+    "status": "sale",
+    "type": "villa",
+    "loc": "Hadda",
+    "name": {"en": "Qamariya Courtyard Villa", "ar": "فيلا فناء القمرية"},
+    "price": 890000,
+    "currency": "USD",
+    "beds": 5,
+    "baths": 5,
+    "area": 620,
+    "featured": true,
+    "coverImage": "",
+    "mapUrl": "",
+    "desc": {
+      "en": "A contemporary family villa where glass, shaded courtyards and modern planning meet Sana'a-inspired arches and crafted brick details.",
+      "ar": "فيلا عائلية معاصرة تجمع الزجاج والأفنية المظللة والتخطيط الحديث مع الأقواس والتفاصيل الطوبية المستلهمة من صنعاء."
+    }
+  },
+  {
+    "id": 3,
+    "status": "sale",
+    "type": "apartment",
+    "loc": "Al-Safiah",
+    "name": {"en": "Sana'a Contemporary Residence", "ar": "مسكن صنعاء المعاصر"},
+    "price": 295000,
+    "currency": "USD",
+    "beds": 3,
+    "baths": 3,
+    "area": 205,
+    "featured": true,
+    "coverImage": "",
+    "mapUrl": "",
+    "desc": {
+      "en": "A refined city apartment with warm natural materials, filtered light and subtle geometric references to historic Sana'a facades.",
+      "ar": "شقة مدينة راقية بمواد طبيعية دافئة وإضاءة مفلترة وإشارات هندسية هادئة لواجهات صنعاء التاريخية."
+    }
+  },
+  {
+    "id": 4,
+    "status": "rent",
+    "type": "villa",
+    "loc": "Hadda",
+    "name": {"en": "Garden Qamariya Home", "ar": "منزل حديقة القمرية"},
+    "price": 2600,
+    "currency": "USD",
+    "beds": 4,
+    "baths": 4,
+    "area": 390,
+    "featured": false,
+    "coverImage": "",
+    "mapUrl": "",
+    "desc": {
+      "en": "A quiet rental villa with a landscaped courtyard and modern rooms framed by Yemeni-inspired architectural details.",
+      "ar": "فيلا هادئة للإيجار بفناء منسق وغرف حديثة تحيط بها تفاصيل معمارية يمنية."
+    }
+  },
+  {
+    "id": 5,
+    "status": "rent",
+    "type": "apartment",
+    "loc": "Al-Safiah",
+    "name": {"en": "Brick & Glass Residence", "ar": "مسكن الطوب والزجاج"},
+    "price": 1700,
+    "currency": "USD",
+    "beds": 2,
+    "baths": 2,
+    "area": 145,
+    "featured": false,
+    "coverImage": "",
+    "mapUrl": "",
+    "desc": {
+      "en": "A modern apartment balancing generous glass openings with brick-toned surfaces and shaded interior spaces.",
+      "ar": "شقة حديثة توازن بين الفتحات الزجاجية الواسعة والأسطح ذات اللون الطوبي والمساحات الداخلية المظللة."
+    }
+  },
+  {
+    "id": 6,
+    "status": "sale",
+    "type": "heritage",
+    "loc": "Old Sana'a",
+    "name": {"en": "Merchant Courtyard House", "ar": "بيت تاجر بفناء داخلي"},
+    "price": 730000,
+    "currency": "USD",
+    "beds": 6,
+    "baths": 4,
+    "area": 470,
+    "featured": false,
+    "coverImage": "",
+    "mapUrl": "",
+    "desc": {
+      "en": "A heritage courtyard house with layered living rooms, stone lower walls and restored colored-glass windows.",
+      "ar": "بيت تراثي بفناء داخلي وغرف معيشة متدرجة وجدران سفلية حجرية ونوافذ زجاج ملون مرممة."
+    }
+  }
+]
