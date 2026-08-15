@@ -4,14 +4,17 @@
     "status": "sale",
     "type": "heritage",
     "loc": "Old Sana'a",
-    "name": {"en": "Restored Tower House", "ar": "بيت برج صنعاني مرمم"},
+    "name": {
+      "en": "Restored Tower House",
+      "ar": "بيت برج صنعاني مرمم"
+    },
     "price": 640000,
     "currency": "USD",
     "beds": 6,
     "baths": 4,
     "area": 510,
     "featured": true,
-    "coverImage": "",
+    "coverImage": "/assets/properties/restored-sanaa-tower-house.webp",
     "mapUrl": "",
     "desc": {
       "en": "A carefully restored multi-level residence with warm fired brick, white gypsum bands, qamariya-inspired glazing and a private upper majlis.",
@@ -23,14 +26,17 @@
     "status": "sale",
     "type": "villa",
     "loc": "Hadda",
-    "name": {"en": "Qamariya Courtyard Villa", "ar": "فيلا فناء القمرية"},
+    "name": {
+      "en": "Qamariya Courtyard Villa",
+      "ar": "فيلا فناء القمرية"
+    },
     "price": 890000,
     "currency": "USD",
     "beds": 5,
     "baths": 5,
     "area": 620,
     "featured": true,
-    "coverImage": "",
+    "coverImage": "/assets/properties/qamariya-courtyard-villa.webp",
     "mapUrl": "",
     "desc": {
       "en": "A contemporary family villa where glass, shaded courtyards and modern planning meet Sana'a-inspired arches and crafted brick details.",
@@ -42,14 +48,17 @@
     "status": "sale",
     "type": "apartment",
     "loc": "Al-Safiah",
-    "name": {"en": "Sana'a Contemporary Residence", "ar": "مسكن صنعاء المعاصر"},
+    "name": {
+      "en": "Sana'a Contemporary Residence",
+      "ar": "مسكن صنعاء المعاصر"
+    },
     "price": 295000,
     "currency": "USD",
     "beds": 3,
     "baths": 3,
     "area": 205,
     "featured": true,
-    "coverImage": "",
+    "coverImage": "/assets/properties/contemporary-sanaa-residence.webp",
     "mapUrl": "",
     "desc": {
       "en": "A refined city apartment with warm natural materials, filtered light and subtle geometric references to historic Sana'a facades.",
@@ -61,7 +70,10 @@
     "status": "rent",
     "type": "villa",
     "loc": "Hadda",
-    "name": {"en": "Garden Qamariya Home", "ar": "منزل حديقة القمرية"},
+    "name": {
+      "en": "Garden Qamariya Home",
+      "ar": "منزل حديقة القمرية"
+    },
     "price": 2600,
     "currency": "USD",
     "beds": 4,
@@ -80,7 +92,10 @@
     "status": "rent",
     "type": "apartment",
     "loc": "Al-Safiah",
-    "name": {"en": "Brick & Glass Residence", "ar": "مسكن الطوب والزجاج"},
+    "name": {
+      "en": "Brick & Glass Residence",
+      "ar": "مسكن الطوب والزجاج"
+    },
     "price": 1700,
     "currency": "USD",
     "beds": 2,
@@ -99,7 +114,10 @@
     "status": "sale",
     "type": "heritage",
     "loc": "Old Sana'a",
-    "name": {"en": "Merchant Courtyard House", "ar": "بيت تاجر بفناء داخلي"},
+    "name": {
+      "en": "Merchant Courtyard House",
+      "ar": "بيت تاجر بفناء داخلي"
+    },
     "price": 730000,
     "currency": "USD",
     "beds": 6,
