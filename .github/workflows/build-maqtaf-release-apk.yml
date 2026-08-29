@@ -1,0 +1,78 @@
+name: Build Maqtaf Release APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - maqtaf-apk-build
+    paths:
+      - "maqtaf_release_app/**"
+      - ".github/workflows/build-maqtaf-release-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Preserve authored files
+        run: |
+          cp maqtaf_release_app/lib/main.dart /tmp/maqtaf-main.dart
+          cp maqtaf_release_app/pubspec.yaml /tmp/maqtaf-pubspec.yaml
+          cp maqtaf_release_app/test/widget_test.dart /tmp/maqtaf-test.dart
+
+      - name: Generate Android platform
+        working-directory: maqtaf_release_app
+        run: flutter create --platforms=android --org com.maqtaf.market --project-name maqtaf_release .
+
+      - name: Restore authored files
+        run: |
+          cp /tmp/maqtaf-main.dart maqtaf_release_app/lib/main.dart
+          cp /tmp/maqtaf-pubspec.yaml maqtaf_release_app/pubspec.yaml
+          cp /tmp/maqtaf-test.dart maqtaf_release_app/test/widget_test.dart
+
+      - name: Apply Yemeni brand and Android permissions
+        run: python3 maqtaf_release_app/tool/prepare_android.py
+
+      - name: Resolve packages
+        working-directory: maqtaf_release_app
+        run: flutter pub get
+
+      - name: Static analysis
+        working-directory: maqtaf_release_app
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Widget tests
+        working-directory: maqtaf_release_app
+        run: flutter test
+
+      - name: Build release APK
+        working-directory: maqtaf_release_app
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.example.invalid/api/v1
+
+      - name: Prepare artifact and checksum
+        run: |
+          cp maqtaf_release_app/build/app/outputs/flutter-apk/app-release.apk Maqtaf-Yemen-v0.2.1.apk
+          sha256sum Maqtaf-Yemen-v0.2.1.apk > Maqtaf-Yemen-v0.2.1.apk.sha256
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Maqtaf-Yemen-Release-APK
+          path: |
+            Maqtaf-Yemen-v0.2.1.apk
+            Maqtaf-Yemen-v0.2.1.apk.sha256
+          retention-days: 30
+          if-no-files-found: error
