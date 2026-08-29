@@ -1,0 +1,70 @@
+name: Build Maqtaf Android APK
+
+on:
+  push:
+    branches:
+      - maqtaf-apk-build
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore Maqtaf prototype source
+        shell: bash
+        run: |
+          mkdir -p maqtaf-mobile
+          base64 --decode maqtaf-build/maqtaf-apk-prototype.tar.gz.b64 > /tmp/maqtaf-source.tar.gz
+          tar -xzf /tmp/maqtaf-source.tar.gz -C maqtaf-mobile
+          chmod +x maqtaf-mobile/apply_branding.sh
+
+      - name: Generate Android project
+        working-directory: maqtaf-mobile
+        run: flutter create --platforms=android --org com.maqtaf --project-name maqtaf_preview .
+
+      - name: Apply Arabic name and Maqtaf icon
+        working-directory: maqtaf-mobile
+        run: ./apply_branding.sh
+
+      - name: Get dependencies
+        working-directory: maqtaf-mobile
+        run: flutter pub get
+
+      - name: Analyze source
+        working-directory: maqtaf-mobile
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build installable release APK
+        working-directory: maqtaf-mobile
+        run: flutter build apk --release
+
+      - name: Prepare named artifact
+        run: cp maqtaf-mobile/build/app/outputs/flutter-apk/app-release.apk maqtaf-android-preview.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: maqtaf-android-apk
+          path: maqtaf-android-preview.apk
+          if-no-files-found: error
+          retention-days: 30
