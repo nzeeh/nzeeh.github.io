@@ -1,0 +1,18 @@
+name: maqtaf_release
+publish_to: "none"
+description: تطبيق مقطف اليمني
+version: 0.2.1+3
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
