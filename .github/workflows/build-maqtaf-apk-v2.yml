@@ -1,0 +1,81 @@
+name: Build Maqtaf Android APK v2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - maqtaf-apk-build
+    paths:
+      - "maqtaf_app/**"
+      - ".github/workflows/build-maqtaf-apk-v2.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Preserve application source
+        run: |
+          cp maqtaf_app/lib/main.dart /tmp/maqtaf-main.dart
+          cp maqtaf_app/pubspec.yaml /tmp/maqtaf-pubspec.yaml
+          cp maqtaf_app/test/widget_test.dart /tmp/maqtaf-widget-test.dart
+
+      - name: Generate Android platform
+        working-directory: maqtaf_app
+        run: flutter create --platforms=android --org com.maqtaf.market --project-name maqtaf .
+
+      - name: Restore application source and apply compatibility patch
+        run: |
+          cp /tmp/maqtaf-main.dart maqtaf_app/lib/main.dart
+          cp /tmp/maqtaf-pubspec.yaml maqtaf_app/pubspec.yaml
+          cp /tmp/maqtaf-widget-test.dart maqtaf_app/test/widget_test.dart
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('maqtaf_app/lib/main.dart')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("right:go?(widget.offset-1)*22:0", "right:go?(widget.offset-1)*22.0:0.0")
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Apply Yemeni branding and permissions
+        run: python3 maqtaf_app/tool/prepare_android.py
+
+      - name: Install packages
+        working-directory: maqtaf_app
+        run: flutter pub get
+
+      - name: Analyze source
+        working-directory: maqtaf_app
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run widget test
+        working-directory: maqtaf_app
+        run: flutter test
+
+      - name: Build release APK
+        working-directory: maqtaf_app
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.example.invalid/api/v1
+
+      - name: Rename and checksum APK
+        run: |
+          cp maqtaf_app/build/app/outputs/flutter-apk/app-release.apk Maqtaf-Yemen-v0.2.0.apk
+          sha256sum Maqtaf-Yemen-v0.2.0.apk > Maqtaf-Yemen-v0.2.0.apk.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Maqtaf-Yemen-Android-APK-v2
+          path: |
+            Maqtaf-Yemen-v0.2.0.apk
+            Maqtaf-Yemen-v0.2.0.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
