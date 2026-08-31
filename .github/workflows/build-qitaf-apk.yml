@@ -47,8 +47,7 @@ jobs:
           unzip -t qitaf_v02_overlay.zip
           unzip -o -q qitaf_v02_overlay.zip -d build_workspace
 
-          # Small test-safety hotfix for Material ink under decorated containers.
-          base64 --decode qitaf_v02_hotfix.zip.b64 > qitaf_v02_hotfix.zip
+          # Test-safety hotfix for Material ink under decorated containers.
           unzip -t qitaf_v02_hotfix.zip
           unzip -o -q qitaf_v02_hotfix.zip -d build_workspace
 
