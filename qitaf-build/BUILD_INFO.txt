@@ -1,0 +1,5 @@
+Qitaf Android demo v0.1
+Source commit: 2eed5e8e99a27b8f6db40ee2646683c426d57964
+Built: 2026-08-31T18:49:19Z
+Flutter 3.47.2 • channel stable • https://github.com/flutter/flutter.git
+APK size: 52M
