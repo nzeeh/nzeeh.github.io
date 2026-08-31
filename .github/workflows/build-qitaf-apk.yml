@@ -1,0 +1,109 @@
+name: Build Qitaf Android APK
+
+on:
+  push:
+    branches:
+      - qitaf-apk-build
+    paths-ignore:
+      - 'qitaf-build/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Reconstruct and unpack Qitaf source
+        run: |
+          cat qitaf_source.b64.part-* > qitaf_source_min.zip.b64
+          base64 --decode qitaf_source_min.zip.b64 > qitaf_source_min.zip
+          unzip -t qitaf_source_min.zip
+          rm -rf build_workspace
+          mkdir -p build_workspace
+          unzip -q qitaf_source_min.zip -d build_workspace
+          python3 -m pip install --quiet pillow
+          cd build_workspace
+          python3 generate_assets.py
+
+      - name: Generate Android scaffold
+        working-directory: build_workspace/qitaf_app
+        run: |
+          rm -rf /tmp/qitaf_android_scaffold
+          flutter create --platforms=android --org com.qitaf --project-name qitaf /tmp/qitaf_android_scaffold
+          cp -R /tmp/qitaf_android_scaffold/android ./android
+          python3 tool/configure_android.py
+
+      - name: Install packages
+        working-directory: build_workspace/qitaf_app
+        run: flutter pub get
+
+      - name: Format Dart source
+        working-directory: build_workspace/qitaf_app
+        run: dart format lib test
+
+      - name: Analyze
+        working-directory: build_workspace/qitaf_app
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Test
+        working-directory: build_workspace/qitaf_app
+        run: flutter test
+
+      - name: Build installable release APK
+        working-directory: build_workspace/qitaf_app
+        run: flutter build apk --release
+
+      - name: Prepare release files
+        run: |
+          mkdir -p qitaf-build
+          cp build_workspace/qitaf_app/build/app/outputs/flutter-apk/app-release.apk qitaf-build/qitaf-demo-v0.1.apk
+          sha256sum qitaf-build/qitaf-demo-v0.1.apk > qitaf-build/qitaf-demo-v0.1.sha256
+          {
+            echo "Qitaf Android demo v0.1"
+            echo "Source commit: $GITHUB_SHA"
+            echo "Built: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            flutter --version | head -1
+            echo "APK size: $(du -h qitaf-build/qitaf-demo-v0.1.apk | cut -f1)"
+          } > qitaf-build/BUILD_INFO.txt
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qitaf-demo-v0.1-apk
+          path: |
+            qitaf-build/qitaf-demo-v0.1.apk
+            qitaf-build/qitaf-demo-v0.1.sha256
+            qitaf-build/BUILD_INFO.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish APK on build branch
+        run: |
+          git config user.name "Qitaf Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add qitaf-build/qitaf-demo-v0.1.apk qitaf-build/qitaf-demo-v0.1.sha256 qitaf-build/BUILD_INFO.txt
+          if git diff --cached --quiet; then
+            echo "No APK changes to commit"
+          else
+            git commit -m "[skip ci] Publish Qitaf Android demo APK"
+            git push origin HEAD:qitaf-apk-build
+          fi
