@@ -1,0 +1,6 @@
+Qitaf Android demo v0.2
+Features: first-launch buyer/seller selector and role-specific home
+Source commit: 65a6d0a78c9a2cc134281ecd0c512e02136f629a
+Built: 2026-08-31T19:55:28Z
+Flutter 3.47.2 • channel stable • https://github.com/flutter/flutter.git
+APK size: 52M
