@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -40,6 +40,13 @@ jobs:
           rm -rf build_workspace
           mkdir -p build_workspace
           unzip -q qitaf_source_min.zip -d build_workspace
+
+          # Apply the v0.2 buyer/seller onboarding and role-specific interface.
+          cat qitaf_v02_overlay.b64.part-* > qitaf_v02_overlay.zip.b64
+          base64 --decode qitaf_v02_overlay.zip.b64 > qitaf_v02_overlay.zip
+          unzip -t qitaf_v02_overlay.zip
+          unzip -o -q qitaf_v02_overlay.zip -d build_workspace
+
           python3 -m pip install --quiet pillow
           cd build_workspace
           python3 generate_assets.py
@@ -75,24 +82,25 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir -p qitaf-build
-          cp build_workspace/qitaf_app/build/app/outputs/flutter-apk/app-release.apk qitaf-build/qitaf-demo-v0.1.apk
-          sha256sum qitaf-build/qitaf-demo-v0.1.apk > qitaf-build/qitaf-demo-v0.1.sha256
+          cp build_workspace/qitaf_app/build/app/outputs/flutter-apk/app-release.apk qitaf-build/qitaf-demo-v0.2.apk
+          sha256sum qitaf-build/qitaf-demo-v0.2.apk > qitaf-build/qitaf-demo-v0.2.sha256
           {
-            echo "Qitaf Android demo v0.1"
+            echo "Qitaf Android demo v0.2"
+            echo "Features: first-launch buyer/seller selector and role-specific home"
             echo "Source commit: $GITHUB_SHA"
             echo "Built: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             flutter --version | head -1
-            echo "APK size: $(du -h qitaf-build/qitaf-demo-v0.1.apk | cut -f1)"
-          } > qitaf-build/BUILD_INFO.txt
+            echo "APK size: $(du -h qitaf-build/qitaf-demo-v0.2.apk | cut -f1)"
+          } > qitaf-build/BUILD_INFO_V0.2.txt
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: qitaf-demo-v0.1-apk
+          name: qitaf-demo-v0.2-apk
           path: |
-            qitaf-build/qitaf-demo-v0.1.apk
-            qitaf-build/qitaf-demo-v0.1.sha256
-            qitaf-build/BUILD_INFO.txt
+            qitaf-build/qitaf-demo-v0.2.apk
+            qitaf-build/qitaf-demo-v0.2.sha256
+            qitaf-build/BUILD_INFO_V0.2.txt
           if-no-files-found: error
           retention-days: 30
 
@@ -100,10 +108,10 @@ jobs:
         run: |
           git config user.name "Qitaf Build Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add qitaf-build/qitaf-demo-v0.1.apk qitaf-build/qitaf-demo-v0.1.sha256 qitaf-build/BUILD_INFO.txt
+          git add qitaf-build/qitaf-demo-v0.2.apk qitaf-build/qitaf-demo-v0.2.sha256 qitaf-build/BUILD_INFO_V0.2.txt
           if git diff --cached --quiet; then
             echo "No APK changes to commit"
           else
-            git commit -m "[skip ci] Publish Qitaf Android demo APK"
+            git commit -m "[skip ci] Publish Qitaf Android demo v0.2 APK"
             git push origin HEAD:qitaf-apk-build
           fi
