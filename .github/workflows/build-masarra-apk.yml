@@ -1,0 +1,61 @@
+name: Build Masarra Yemen APK
+
+on:
+  push:
+    branches:
+      - masarra-android
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+
+      - name: Extract Android source
+        run: tar -xJf masarra-src.tar.xz
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
+      - name: Set up Gradle 8.13
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Build debug APK
+        working-directory: masarra-android
+        run: gradle --no-daemon --stacktrace assembleDebug
+
+      - name: Prepare downloadable package
+        working-directory: masarra-android
+        run: |
+          OUT="app/build/outputs/apk/debug"
+          cp "$OUT/app-debug.apk" "$OUT/Masarra-Yemen-v0.1.0-debug.apk"
+          (cd "$OUT" && sha256sum Masarra-Yemen-v0.1.0-debug.apk > SHA256SUMS.txt)
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Masarra-Yemen-APK
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            masarra-android/app/build/outputs/apk/debug/Masarra-Yemen-v0.1.0-debug.apk
+            masarra-android/app/build/outputs/apk/debug/SHA256SUMS.txt

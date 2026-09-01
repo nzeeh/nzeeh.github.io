@@ -1,9 +1,0 @@
-{
-  "name": "Sana'a Heritage Estates",
-  "short_name": "Sana'a Estates",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#f8f3eb",
-  "theme_color": "#3b2017",
-  "icons": [{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml"}]
-}
