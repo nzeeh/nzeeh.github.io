@@ -22,8 +22,9 @@ jobs:
       - name: Restore Android source
         shell: bash
         run: |
-          echo "2f79c2965bc1cef08f7691ea8e28f9cbc93eacca8a0303aafd2e89b6f05e9b9d  .build/waslpay-src.tar.gz" | sha256sum -c -
-          tar -xzf .build/waslpay-src.tar.gz
+          cat .build/waslpay-src.b64.part-* | base64 --decode > /tmp/waslpay-src.tar.gz
+          echo "2f79c2965bc1cef08f7691ea8e28f9cbc93eacca8a0303aafd2e89b6f05e9b9d  /tmp/waslpay-src.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/waslpay-src.tar.gz
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
