@@ -17,8 +17,11 @@ jobs:
       - name: Checkout build branch
         uses: actions/checkout@v4
 
-      - name: Extract Android source
-        run: tar -xJf masarra-src.tar.xz
+      - name: Rebuild and extract Android source
+        run: |
+          cat masarra-src-v0.2.0.b64/part-* | tr -d '\n' | base64 --decode > masarra-src-v0.2.0.tar.xz
+          echo "a89eb818f8b57cfa579480889944ee03ca1d8b506c3830a6a111e124bd704a83  masarra-src-v0.2.0.tar.xz" | sha256sum -c -
+          tar -xJf masarra-src-v0.2.0.tar.xz
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -47,15 +50,15 @@ jobs:
         working-directory: masarra-android
         run: |
           OUT="app/build/outputs/apk/debug"
-          cp "$OUT/app-debug.apk" "$OUT/Masarra-Yemen-v0.1.0-debug.apk"
-          (cd "$OUT" && sha256sum Masarra-Yemen-v0.1.0-debug.apk > SHA256SUMS.txt)
+          cp "$OUT/app-debug.apk" "$OUT/Masarra-Yemen-v0.2.0-debug.apk"
+          (cd "$OUT" && sha256sum Masarra-Yemen-v0.2.0-debug.apk > SHA256SUMS.txt)
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Masarra-Yemen-APK
+          name: Masarra-Yemen-APK-v0.2.0
           if-no-files-found: error
           retention-days: 30
           path: |
-            masarra-android/app/build/outputs/apk/debug/Masarra-Yemen-v0.1.0-debug.apk
+            masarra-android/app/build/outputs/apk/debug/Masarra-Yemen-v0.2.0-debug.apk
             masarra-android/app/build/outputs/apk/debug/SHA256SUMS.txt
