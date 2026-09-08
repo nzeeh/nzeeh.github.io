@@ -1,0 +1,130 @@
+name: Masarra 0.3 Wedding Halls and Cars
+
+on:
+  push:
+    branches: [masarra-pro-v0.3]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: Masarra-Pro-v0.3.0
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore and verify tested source
+        working-directory: .
+        run: python3 .masarra-v03/restore.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Domain and API regression tests
+        run: |
+          set -o pipefail
+          npm test | tee tests/v03-node-tests.txt
+      - name: Generate Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+          node scripts/configure-native.mjs
+          python3 scripts/standalone.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'platform-tools'
+      - name: Build preview APK and unsigned release AAB
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleDebug bundleRelease
+      - name: Verify and package Android delivery
+        run: |
+          mkdir -p ../delivery-android
+          cp android/app/build/outputs/apk/debug/app-debug.apk ../delivery-android/Masarra-Pro-v0.3.0-preview.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab ../delivery-android/Masarra-Pro-v0.3.0-unsigned.aab
+          cp Masarra-Pro-Preview.html README_AR.md tests/v03-node-tests.txt ../delivery-android/
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs ../delivery-android/Masarra-Pro-v0.3.0-preview.apk > ../delivery-android/APK-VERIFICATION.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging ../delivery-android/Masarra-Pro-v0.3.0-preview.apk > ../delivery-android/APK-METADATA.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          root=Path.cwd()
+          excluded={'node_modules','.gradle','build','build-ios','data','.git','__pycache__'}
+          with zipfile.ZipFile('../delivery-android/Masarra-Pro-Android-Source-v0.3.0.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in root.rglob('*'):
+                  rel=p.relative_to(root)
+                  if p.is_file() and not any(x in rel.parts for x in excluded) and p.suffix not in {'.ttf','.otf','.woff','.woff2','.jks','.keystore'}:
+                      z.write(p,Path(root.name)/rel)
+          PY
+          (cd ../delivery-android && sha256sum *.apk *.aab *.zip > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Masarra-v03-Android-Delivery
+          path: delivery-android/
+          if-no-files-found: error
+          retention-days: 30
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: Masarra-Pro-v0.3.0
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore and verify tested source
+        working-directory: .
+        run: python3 .masarra-v03/restore.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify installed Xcode and simulator SDK
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+      - name: Generate iOS project
+        run: |
+          npm ci --no-audit --no-fund
+          npx cap add ios
+          npx cap sync ios
+          node scripts/configure-native.mjs
+          python3 scripts/ios-icon.py
+      - name: Compile iOS simulator without signing
+        run: |
+          set -o pipefail
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO build | tee ios-build.log
+      - name: Package iOS source and evidence
+        if: always()
+        run: |
+          mkdir -p ../delivery-ios
+          if [ -f ios-build.log ]; then tail -100 ios-build.log > ../delivery-ios/IOS-BUILD-RESULT.txt; fi
+          xcodebuild -version > ../delivery-ios/XCODE-VERSION.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          root=Path.cwd()
+          excluded={'node_modules','.gradle','build','build-ios','data','.git','__pycache__'}
+          with zipfile.ZipFile('../delivery-ios/Masarra-Pro-iOS-Source-v0.3.0.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in root.rglob('*'):
+                  rel=p.relative_to(root)
+                  if p.is_file() and not any(x in rel.parts for x in excluded) and p.name!='ios-build.log' and p.suffix not in {'.ttf','.otf','.woff','.woff2','.jks','.keystore'}:
+                      z.write(p,Path(root.name)/rel)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Masarra-v03-iOS-Delivery
+          path: delivery-ios/
+          if-no-files-found: error
+          retention-days: 30
