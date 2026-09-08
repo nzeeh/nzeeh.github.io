@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   android:
+    if: "!contains(github.event.head_commit.message, '[ios-only]')"
     runs-on: ubuntu-latest
     timeout-minutes: 25
     defaults:
@@ -92,13 +93,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Select Xcode 26 or newer
+      - name: Verify installed Xcode and matching simulator SDK
         run: |
           xcodebuild -version
-          for p in /Applications/Xcode_26*.app; do
-            if [ -d "$p" ]; then sudo xcode-select -s "$p/Contents/Developer"; break; fi
-          done
-          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+          xcrun simctl list runtimes
       - name: Generate iOS project
         run: |
           npm install --no-audit --no-fund
