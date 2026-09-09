@@ -40,6 +40,7 @@ jobs:
           cd build_workspace
           python3 patch_base.py
           python3 integrate_v03.py
+          python3 ../finish_v03.py
           python3 -m pip install --quiet pillow
           python3 generate_assets.py
       - name: Generate Android and browser projects
@@ -97,9 +98,10 @@ jobs:
           cd build/web
           zip -qr ../../../../qitaf-v03-output/qitaf-web-v0.3.zip .
       - name: Upload tested application files
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: qitaf-demo-v0.3
           path: qitaf-v03-output/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
