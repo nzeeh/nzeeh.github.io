@@ -1,123 +1,105 @@
 name: Build Qitaf Android APK
-
 on:
   push:
-    branches:
-      - qitaf-apk-build
-    paths-ignore:
-      - 'qitaf-build/**'
+    branches: [qitaf-apk-build]
+    paths-ignore: ['qitaf-build/**']
   workflow_dispatch:
-
 permissions:
-  contents: write
-
+  contents: read
+concurrency:
+  group: qitaf-v03-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-
+    timeout-minutes: 40
     steps:
-      - name: Checkout branch
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Set up Flutter stable
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.47.2'
           cache: true
-
-      - name: Reconstruct and unpack Qitaf source
+      - name: Restore source and verify upgrade integrity
         run: |
-          cat qitaf_source.b64.part-* > qitaf_source_min.zip.b64
-          base64 --decode qitaf_source_min.zip.b64 > qitaf_source_min.zip
-          unzip -t qitaf_source_min.zip
-          rm -rf build_workspace
-          mkdir -p build_workspace
-          unzip -q qitaf_source_min.zip -d build_workspace
-
-          # Apply the v0.2 buyer/seller onboarding and role-specific interface.
-          cat qitaf_v02_overlay.b64.part-* > qitaf_v02_overlay.zip.b64
-          base64 --decode qitaf_v02_overlay.zip.b64 > qitaf_v02_overlay.zip
-          unzip -t qitaf_v02_overlay.zip
-          unzip -o -q qitaf_v02_overlay.zip -d build_workspace
-
-          # Apply the Material hotfix from small text-safe chunks.
-          cat qitaf_v02_hotfix.b64.part-* > qitaf_v02_hotfix.zip.b64
-          base64 --decode qitaf_v02_hotfix.zip.b64 > qitaf_v02_hotfix.zip
-          unzip -t qitaf_v02_hotfix.zip
-          unzip -o -q qitaf_v02_hotfix.zip -d build_workspace
-
-          python3 -m pip install --quiet pillow
+          set -euo pipefail
+          cat qitaf_source.b64.part-* | base64 --decode > /tmp/base.zip
+          cat qitaf_v02_overlay.b64.part-* | base64 --decode > /tmp/v02.zip
+          cat qitaf_v02_hotfix.b64.part-* | base64 --decode > /tmp/hotfix.zip
+          cat qitaf_v03_upgrade.b64.part-* | base64 --decode > /tmp/v03.zip
+          echo '86dfb39f775c7ff229583127fe6f662240633d6c72d89a08df3eb84ee9277b32  /tmp/v03.zip' | sha256sum -c -
+          mkdir -p build_workspace qitaf-v03-output
+          for archive in /tmp/base.zip /tmp/v02.zip /tmp/hotfix.zip /tmp/v03.zip; do
+            unzip -t "$archive"
+            unzip -o -q "$archive" -d build_workspace
+          done
           cd build_workspace
+          python3 patch_base.py
+          python3 integrate_v03.py
+          python3 -m pip install --quiet pillow
           python3 generate_assets.py
-
-      - name: Generate Android scaffold
+      - name: Generate Android and browser projects
         working-directory: build_workspace/qitaf_app
         run: |
-          rm -rf /tmp/qitaf_android_scaffold
-          flutter create --platforms=android --org com.qitaf --project-name qitaf /tmp/qitaf_android_scaffold
-          cp -R /tmp/qitaf_android_scaffold/android ./android
+          flutter create --platforms=android,web --org com.qitaf --project-name qitaf /tmp/qitaf_scaffold
+          cp -R /tmp/qitaf_scaffold/android ./android
+          cp -R /tmp/qitaf_scaffold/web ./web
           python3 tool/configure_android.py
-
-      - name: Install packages
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/build.gradle.kts')
+          s=p.read_text().replace('applicationId = "com.qitaf.qitaf"', 'applicationId = "com.qitaf.qitaf.demo3"')
+          if 'com.qitaf.qitaf.demo3' not in s: raise SystemExit('Failed to set isolated demo applicationId')
+          p.write_text(s)
+          for filename in ['android/app/src/main/res/values/strings.xml','android/app/src/main/res/values-ar/strings.xml']:
+              p=Path(filename);p.write_text(p.read_text().replace('>Qitaf<','>Qitaf 0.3<').replace('>قِطاف<','>قِطاف 0.3<'))
+          PY
+      - name: Resolve and format
         working-directory: build_workspace/qitaf_app
-        run: flutter pub get
-
-      - name: Format Dart source
-        working-directory: build_workspace/qitaf_app
-        run: dart format lib test
-
+        run: |
+          flutter pub get
+          dart format lib test
       - name: Analyze
         working-directory: build_workspace/qitaf_app
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
-
-      - name: Test
+      - name: Unit and interface tests
         working-directory: build_workspace/qitaf_app
-        run: flutter test
-
-      - name: Build installable release APK
+        run: flutter test --reporter expanded
+      - name: Build Android APK
         working-directory: build_workspace/qitaf_app
         run: flutter build apk --release
-
-      - name: Prepare release files
+      - name: Verify signed APK and save source
         run: |
-          mkdir -p qitaf-build
-          cp build_workspace/qitaf_app/build/app/outputs/flutter-apk/app-release.apk qitaf-build/qitaf-demo-v0.2.apk
-          sha256sum qitaf-build/qitaf-demo-v0.2.apk > qitaf-build/qitaf-demo-v0.2.sha256
+          set -euo pipefail
+          cp build_workspace/qitaf_app/build/app/outputs/flutter-apk/app-release.apk qitaf-v03-output/qitaf-demo-v0.3.apk
+          unzip -t qitaf-v03-output/qitaf-demo-v0.3.apk | tail -2
+          signer=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          "$signer" verify --verbose --print-certs qitaf-v03-output/qitaf-demo-v0.3.apk | tee qitaf-v03-output/APK_SIGNATURE.txt
+          (cd qitaf-v03-output && sha256sum qitaf-demo-v0.3.apk > qitaf-demo-v0.3.sha256)
           {
-            echo "Qitaf Android demo v0.2"
-            echo "Features: first-launch buyer/seller selector and role-specific home"
-            echo "Source commit: $GITHUB_SHA"
-            echo "Built: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            flutter --version | head -1
-            echo "APK size: $(du -h qitaf-build/qitaf-demo-v0.2.apk | cut -f1)"
-          } > qitaf-build/BUILD_INFO_V0.2.txt
-
-      - name: Upload APK artifact
+            echo 'Qitaf local demo 0.3.0+3: home basket, budget guard, saved products, saved cart, optional Arabic read-aloud'
+            echo 'Application ID: com.qitaf.qitaf.demo3 (separate from the previous demo)'
+            echo 'Not a production wallet, authentication server, delivery service or live-stream service'
+            echo "Source: $GITHUB_SHA"
+            date -u
+            flutter --version
+          } > qitaf-v03-output/BUILD_INFO.txt
+          cd build_workspace
+          zip -qr ../qitaf-v03-output/qitaf-flutter-source-v0.3.zip qitaf_app -x '*/build/*' '*/.dart_tool/*' '*/.gradle/*' '*/local.properties' '*/__pycache__/*'
+      - name: Build browser preview
+        working-directory: build_workspace/qitaf_app
+        run: |
+          flutter build web --release --no-web-resources-cdn
+          cd build/web
+          zip -qr ../../../../qitaf-v03-output/qitaf-web-v0.3.zip .
+      - name: Upload tested application files
         uses: actions/upload-artifact@v4
         with:
-          name: qitaf-demo-v0.2-apk
-          path: |
-            qitaf-build/qitaf-demo-v0.2.apk
-            qitaf-build/qitaf-demo-v0.2.sha256
-            qitaf-build/BUILD_INFO_V0.2.txt
+          name: qitaf-demo-v0.3
+          path: qitaf-v03-output/
           if-no-files-found: error
           retention-days: 30
-
-      - name: Publish APK on build branch
-        run: |
-          git config user.name "Qitaf Build Bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add qitaf-build/qitaf-demo-v0.2.apk qitaf-build/qitaf-demo-v0.2.sha256 qitaf-build/BUILD_INFO_V0.2.txt
-          if git diff --cached --quiet; then
-            echo "No APK changes to commit"
-          else
-            git commit -m "[skip ci] Publish Qitaf Android demo v0.2 APK"
-            git push origin HEAD:qitaf-apk-build
-          fi
