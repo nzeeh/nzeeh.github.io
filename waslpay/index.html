@@ -1,34 +1,56 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#105e52"><meta name="description" content="وَصْل Pay — معاينة محفظة الأسرة: ميزانيات متجددة، مصروف الأبناء وعسب العيد. جميع العمليات تجريبية.">
-<title>وَصْل Pay | العائلة والعسب</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="وَصْل Pay">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>وَصْل Pay | العائلة والعسب — هواتف وأجهزة لوحية</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="family-v2.css?v=2.0.0">
+<link rel="stylesheet" href="responsive-2.1.css?v=2.1.0">
 </head>
 <body>
+<a class="skip-link" href="#screen">انتقل إلى المحتوى</a>
 <main class="layout">
 <aside class="intro">
  <a class="brand" href="#home"><span class="brand-mark">و</span><span>وَصْل <b dir="ltr">Pay</b><small>تفاصيل صغيرة. فرق كبير.</small></span></a>
- <div class="eyebrow">العائلة أولًا · معاينة 2.0</div>
+ <div class="eyebrow">هاتف · تابلت · متصفح · معاينة 2.1</div>
  <h1>محفظة واحدة.<br>أقرب <em>لعائلتك.</em></h1>
  <p>مصروفهم من رصيدك، ضمن حدود تختارها.<br>وفرحة العيد تصلهم في ظرفٍ يحمل محبتك.</p>
  <div class="intro-item"><span>01</span><div><strong>مخصصات تتجدد</strong><small>كل يوم، كل أسبوع، أو كل شهر.</small></div></div>
  <div class="intro-item"><span>02</span><div><strong>«العسب» بطريقتنا</strong><small>ظروف وردية وزرقاء وذهبية، وتهنئة خاصة.</small></div></div>
  <div class="intro-item"><span>03</span><div><strong>قرارات أوضح، قلق أقل</strong><small>حدود للصرف، طلب زيادة، وصندوق لهدف الأسرة.</small></div></div>
  <div class="desktop-notice">نموذج تفاعلي محلي فقط، بلا بنك أو حسابات حقيقية. الأسماء والمبالغ أمثلة، ولا يتم إرسال أموال أو دعوات.</div>
- <span class="revision">تحديث الخميس 10 سبتمبر 2026</span>
+ <span class="revision">تحديث الخميس 10 سبتمبر 2026 · 2.1.0</span>
 </aside>
 <div class="phone">
  <div class="demo-ribbon">معاينة فقط • لا أموال حقيقية ولا ربط بنكي</div>
- <header class="app-header"><a href="#home" class="small-brand"><span class="brand-mark">و</span><b>وَصْل <span dir="ltr">Pay</span></b></a><button class="icon-button" data-action="requests" aria-label="طلبات الأسرة"><span id="bellIcon"></span><span id="requestCount" class="notification-dot" hidden></span></button></header>
+ <header class="app-header"><a href="#home" class="small-brand"><span class="brand-mark">و</span><b>وَصْل <span dir="ltr">Pay</span></b></a><div class="header-actions"><button type="button" class="install-trigger" data-platform-action="install" aria-label="تثبيت وَصْل على جهازك">ثبّت التطبيق</button><button class="icon-button" data-action="requests" aria-label="طلبات الأسرة"><span id="bellIcon"></span><span id="requestCount" class="notification-dot" hidden></span></button></div></header>
+ <div id="connectionBar" class="connection-bar" role="status" hidden>أنت بلا إنترنت — المعاينة المحلية فقط. لا معاملات مالية حقيقية.</div>
+ <div id="updateBar" class="update-bar" role="status" hidden><span>تحديث جديد جاهز للمعاينة</span><button type="button" data-platform-action="update">تحديث الآن</button></div>
  <div id="screen" class="screen" tabindex="-1"></div>
  <nav id="nav" class="bottom-nav" aria-label="التنقل الرئيسي"></nav>
  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </div>
 </main>
 <dialog id="dialog" aria-labelledby="dialogTitle"><div class="dialog-head"><h2 id="dialogTitle"></h2><button class="icon-button" data-action="close" aria-label="إغلاق">×</button></div><div id="dialogBody"></div></dialog>
+<dialog id="installDialog" aria-labelledby="installTitle">
+ <div class="dialog-head"><h2 id="installTitle">وَصْل، على جهازك</h2><button type="button" class="icon-button" data-platform-action="close-install" aria-label="إغلاق تعليمات التثبيت">×</button></div>
+ <div class="install-hero"><img src="icons/icon-192.png" width="74" height="74" alt="أيقونة وَصْل Pay"><h3>عائلتك أقرب، بضغطة.</h3><p>أضف المعاينة إلى الشاشة الرئيسية.<br>للهواتف والأجهزة اللوحية، دون تسجيل في ChatGPT.</p></div>
+ <div class="install-tabs" role="group" aria-label="نوع جهازك"><button type="button" data-platform-action="tab" data-platform="android" aria-pressed="true">Android</button><button type="button" data-platform-action="tab" data-platform="apple" aria-pressed="false">iPhone / iPad</button></div>
+ <ol id="installSteps" class="install-steps"></ol>
+ <button type="button" id="nativeInstall" class="primary" data-platform-action="native-install" hidden>تثبيت التطبيق</button>
+ <p class="hint warn">هذه نسخة ويب تجريبية، وليست تطبيقًا منشورًا في App Store أو Google Play. ملف APK السابق لا يُحدَّث تلقائيًا.</p>
+ <p id="offlineHint" class="install-foot">بعد تحميل الملفات لأول مرة، تتاح المعاينة المحفوظة دون إنترنت إذا دعم المتصفح ذلك. لا تُنفّذ دفعات حقيقية، ولا تنتقل بيانات التجربة بين الأجهزة.</p>
+</dialog>
 <noscript><p>تحتاج المعاينة إلى تفعيل JavaScript. لا يتم تنفيذ أي معاملات حقيقية.</p></noscript>
 <script src="family-v2.js?v=2.0.0"></script>
+<script src="platform-2.1.js?v=2.1.0"></script>
 </body>
 </html>

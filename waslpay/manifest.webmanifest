@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "وَصْل Pay — معاينة العائلة",
+  "short_name": "وَصْل Pay",
+  "description": "معاينة تجريبية لمحفظة الأسرة والعسب. لا أموال حقيقية، ولا ربط بنكي أو مزامنة بين الأجهزة.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./?source=installed",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f8f4",
+  "theme_color": "#105e52",
+  "prefer_related_applications": false,
+  "icons": [
+    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ],
+  "shortcuts": [
+    {"name":"العائلة","short_name":"العائلة","url":"./#family"},
+    {"name":"العسب والعيدية","short_name":"العسب","url":"./#gifts"}
+  ]
+}
