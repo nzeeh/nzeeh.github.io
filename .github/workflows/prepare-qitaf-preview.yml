@@ -1,64 +1,78 @@
-name: Prepare Qitaf browser preview
+name: Verify published Qitaf browser link
 on:
   push:
     branches: [qitaf-preview-prepare-20260916]
 permissions:
-  contents: write
-  actions: read
+  contents: read
 jobs:
-  prepare:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     steps:
-      - name: Check out preview tools
-        uses: actions/checkout@v4
-        with:
-          path: tools
-      - name: Preserve the existing website exactly
-        uses: actions/checkout@v4
-        with:
-          ref: '988b9374a4e503971e728a7be45bc251efb06c9e'
-          path: site
-      - name: Download already-tested Qitaf v0.3 web build
-        uses: actions/download-artifact@v4
-        with:
-          name: qitaf-demo-v0.3
-          run-id: 34403463765
-          repository: nzeeh/nzeeh.github.io
-          github-token: ${{ github.token }}
-          path: bundle
-      - name: Prepare isolated qitaf directory
-        run: python3 tools/prepare_qitaf_preview.py bundle/qitaf-web-v0.3.zip site/qitaf
+      - name: Wait for the published preview metadata
+        run: |
+          python3 - <<'PY'
+          import json,time,urllib.request
+          url='https://nzeeh.github.io/qitaf/preview-info.json'
+          for attempt in range(30):
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'Qitaf-preview-check','Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=10) as r:
+                      data=json.load(r)
+                  assert data['version']=='0.3.0+3' and data['demo'] is True
+                  print('Verified public preview metadata:',url,data)
+                  break
+              except Exception as exc:
+                  if attempt==29: raise
+                  print('Waiting for deployment',type(exc).__name__)
+                  time.sleep(5)
+          PY
       - name: Install browser test client
         run: python3 -m pip install --quiet playwright
-      - name: Test preview and capture the actual screen
+      - name: Open published Qitaf and test buyer navigation
         run: |
-          python3 -m http.server 8765 --bind 127.0.0.1 --directory site > /tmp/qitaf-http.log 2>&1 &
-          python3 tools/test_qitaf_preview.py
-      - name: Stage only Qitaf without publishing other changes
-        working-directory: site
-        run: |
-          set -euo pipefail
-          git config user.name 'Qitaf Preview Build'
-          git config user.email 'actions@users.noreply.github.com'
-          git add -- qitaf
           python3 - <<'PY'
-          import subprocess
-          paths=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
-          assert paths and all(p.startswith('qitaf/') for p in paths), paths
-          print('Only qitaf/ is changed; existing websites are preserved.')
+          from playwright.sync_api import sync_playwright
+          from pathlib import Path
+          import json,shutil
+          report={'url':'https://nzeeh.github.io/qitaf/','version':'0.3.0+3','page_errors':[],'failed_site_requests':[]}
+          with sync_playwright() as p:
+              exe=shutil.which('google-chrome') or shutil.which('chromium')
+              assert exe
+              browser=p.chromium.launch(headless=True,executable_path=exe,args=['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader'])
+              page=browser.new_page(viewport={'width':390,'height':844},device_scale_factor=1)
+              page.on('pageerror',lambda e: report['page_errors'].append(str(e)))
+              page.on('response',lambda r:report['failed_site_requests'].append({'status':r.status,'url':r.url}) if r.status>=400 and r.url.startswith(report['url']) else None)
+              try:
+                  response=page.goto(report['url'],wait_until='domcontentloaded',timeout=45000)
+                  report['http_status']=response.status
+                  page.wait_for_function('window.qitafReady === true',timeout=90000)
+                  page.wait_for_timeout(2000)
+                  report['first_frame']=True
+                  report['final_url']=page.url
+                  page.screenshot(path='qitaf-live-role-screen.png')
+                  page.mouse.click(180,338)
+                  page.wait_for_timeout(2500)
+                  page.screenshot(path='qitaf-live-buyer-screen.png')
+                  report['buyer_selection_clicked']=True
+                  report['canvas_count']=page.locator('canvas').count()
+                  assert report['http_status']==200 and report['first_frame']
+                  assert report['final_url'].startswith(report['url'])
+                  assert not report['page_errors'], report['page_errors']
+                  assert not report['failed_site_requests'], report['failed_site_requests']
+              finally:
+                  Path('QITAF_LIVE_PREVIEW_CHECK.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+                  print(json.dumps(report,ensure_ascii=False))
+                  browser.close()
           PY
-          git commit -m 'Publish isolated Qitaf v0.3 browser preview'
-          git push origin HEAD:refs/heads/qitaf-preview-ready-20260916
-          git rev-parse HEAD > ../QITAF_PREVIEW_COMMIT.txt
-      - name: Save browser verification
+      - name: Save public-link test evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qitaf-preview-verification-20260916
+          name: qitaf-public-link-check-20260916
           path: |
-            QITAF_PREVIEW_COMMIT.txt
-            QITAF_PREVIEW_CHECK.json
-            qitaf-browser-preview.png
-          if-no-files-found: warn
+            QITAF_LIVE_PREVIEW_CHECK.json
+            qitaf-live-role-screen.png
+            qitaf-live-buyer-screen.png
           retention-days: 7
+          if-no-files-found: warn
