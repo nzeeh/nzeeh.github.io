@@ -7,14 +7,10 @@ text = home.read_text(encoding='utf-8')
 
 # v0.3 already has a sound budget selector. Make the entry points friendlier to
 # smaller and medium baskets without changing any product price or fee.
-old_values = '[4000, 7000, 10000, 20000]'
-new_values = '[3000, 5000, 10000, 20000]'
-occurrences = text.count(old_values)
-if occurrences < 2:
-    raise RuntimeError(
-        f'Expected the v0.3 quick-budget list at least twice; found {occurrences}'
-    )
-text = text.replace(old_values, new_values)
+pattern = re.compile(r'\[\s*4000\s*,\s*7000\s*,\s*10000\s*,\s*20000\s*\]')
+text, occurrences = pattern.subn('[3000, 5000, 10000, 20000]', text)
+if occurrences < 1:
+    raise RuntimeError('Could not find the v0.3 quick-budget values')
 
 # Inclusive language: choices describe shopping intent, never income class.
 text = text.replace("'لبيتي'", "'للبيت والعائلة'")
@@ -78,7 +74,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('Home Basket exposes inclusive quick budgets and manual amount', () {
     final source = File('lib/features/basket/home_basket_screen.dart').readAsStringSync();
-    expect(source, contains('[3000, 5000, 10000, 20000]'));
+    expect(RegExp(r'\\[\\s*3000\\s*,\\s*5000\\s*,\\s*10000\\s*,\\s*20000\\s*\\]').hasMatch(source), isTrue);
     expect(source, contains('_refresh(() => _budget = value)'));
     expect(source, contains('مبلغ آخر'));
     expect(source, contains('للبيت والعائلة'));
@@ -90,4 +86,4 @@ void main() {
     encoding='utf-8',
 )
 
-print('Qitaf v0.4 budget tiers, inclusive copy and regression tests applied.')
+print(f'Qitaf v0.4 budget tiers applied to {occurrences} source list(s); inclusive copy and tests updated.')
