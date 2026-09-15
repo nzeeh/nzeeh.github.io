@@ -43,6 +43,14 @@ jobs:
           python3 ../finish_v03.py
           python3 -m pip install --quiet pillow
           python3 generate_assets.py
+      - name: Inspect v0.3 buyer-flow hooks
+        run: |
+          echo '--- HOME BASKET ---'
+          grep -n -B12 -A70 -E 'حدّد ميزانيتك|عدد الأشخاص|ميزانيتك|أضف السلة|سلة البيت' build_workspace/qitaf_app/lib/features/basket/home_basket_screen.dart | head -n 320 || true
+          echo '--- APP STORE ---'
+          grep -n -B10 -A45 -E 'SharedPreferences|saved|cart|bookmark|basket' build_workspace/qitaf_app/lib/core/state/app_store.dart | head -n 260 || true
+          echo '--- MARKET / CART ---'
+          grep -n -B8 -A35 -E 'سلة البيت|المحفوظ|السلة|إعادة' build_workspace/qitaf_app/lib/features/market/market_screen.dart build_workspace/qitaf_app/lib/features/cart/cart_screen.dart | head -n 240 || true
       - name: Generate Android and browser projects
         working-directory: build_workspace/qitaf_app
         run: |
