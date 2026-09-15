@@ -14,26 +14,28 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="family-v2.css?v=2.0.0">
 <link rel="stylesheet" href="responsive-2.1.css?v=2.1.0">
+<link rel="stylesheet" href="messages-2.2.css?v=2.2.0">
 </head>
 <body>
 <a class="skip-link" href="#screen">انتقل إلى المحتوى</a>
 <main class="layout">
 <aside class="intro">
  <a class="brand" href="#home"><span class="brand-mark">و</span><span>وَصْل <b dir="ltr">Pay</b><small>تفاصيل صغيرة. فرق كبير.</small></span></a>
- <div class="eyebrow">هاتف · تابلت · متصفح · معاينة 2.1.2</div>
+ <div class="eyebrow">هاتف · تابلت · متصفح · معاينة 2.2.0</div>
  <h1>محفظة واحدة.<br>أقرب <em>لعائلتك.</em></h1>
  <p>مصروفهم من رصيدك، ضمن حدود تختارها.<br>وفرحة العيد تصلهم في ظرفٍ يحمل محبتك.</p>
  <div class="intro-item"><span>01</span><div><strong>مخصصات تتجدد</strong><small>كل يوم، كل أسبوع، أو كل شهر.</small></div></div>
  <div class="intro-item"><span>02</span><div><strong>«العسب» بطريقتنا</strong><small>ظروف وردية وزرقاء وذهبية، وتهنئة خاصة.</small></div></div>
  <div class="intro-item"><span>03</span><div><strong>قرارات أوضح، قلق أقل</strong><small>حدود للصرف، طلب زيادة، وصندوق لهدف الأسرة.</small></div></div>
  <div class="desktop-notice">نموذج تفاعلي محلي فقط، بلا بنك أو حسابات حقيقية. الأسماء والمبالغ أمثلة، ولا يتم إرسال أموال أو دعوات.</div>
- <span class="revision">تحديث الثلاثاء 15 سبتمبر 2026 · 2.1.2</span>
+ <span class="revision">تحديث الأربعاء 16 سبتمبر 2026 · 2.2.0</span>
 </aside>
 <div class="phone">
  <div class="demo-ribbon">معاينة فقط • لا أموال حقيقية ولا ربط بنكي</div>
- <header class="app-header"><a href="#home" class="small-brand"><span class="brand-mark">و</span><b>وَصْل <span dir="ltr">Pay</span></b></a><div class="header-actions"><button type="button" class="install-trigger" data-platform-action="install" aria-label="تثبيت وَصْل على جهازك">ثبّت التطبيق</button><button class="icon-button" data-action="requests" aria-label="طلبات الأسرة"><span id="bellIcon"></span><span id="requestCount" class="notification-dot" hidden></span></button></div></header>
+ <header class="app-header"><a href="#home" class="small-brand"><span class="brand-mark">و</span><b>وَصْل <span dir="ltr">Pay</span></b></a><div class="header-actions"><button type="button" class="message-trigger" id="messageTrigger" data-inbox="open" aria-label="الرسائل"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg><span>الرسائل</span><span id="messageCount" class="notification-dot" hidden></span></button><button type="button" class="install-trigger" data-platform-action="install" aria-label="تثبيت وَصْل على جهازك">ثبّت التطبيق</button><button class="icon-button" data-action="requests" aria-label="طلبات الأسرة"><span id="bellIcon"></span><span id="requestCount" class="notification-dot" hidden></span></button></div></header>
  <div id="connectionBar" class="connection-bar" role="status" hidden>أنت بلا إنترنت — المعاينة المحلية فقط. لا معاملات مالية حقيقية.</div>
  <div id="updateBar" class="update-bar" role="status" hidden><span>تحديث جديد جاهز للمعاينة</span><button type="button" data-platform-action="update">تحديث الآن</button></div>
+ <div id="paymentLive" class="payment-live" hidden><p id="paymentLiveText" role="status" aria-live="polite" aria-atomic="true"></p><button type="button" id="paymentLiveOpen" data-inbox="detail">التفاصيل</button><button type="button" data-inbox="dismiss" aria-label="إخفاء تنبيه الحركة">×</button></div>
  <div id="screen" class="screen" tabindex="-1"></div>
  <nav id="nav" class="bottom-nav" aria-label="التنقل الرئيسي"></nav>
  <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -49,9 +51,11 @@
  <p class="hint warn">هذه نسخة ويب تجريبية، وليست تطبيقًا منشورًا في App Store أو Google Play. ملف APK السابق لا يُحدَّث تلقائيًا.</p>
  <p id="offlineHint" class="install-foot">بعد تحميل الملفات لأول مرة، تتاح المعاينة المحفوظة دون إنترنت إذا دعم المتصفح ذلك. لا تُنفّذ دفعات حقيقية، ولا تنتقل بيانات التجربة بين الأجهزة.</p>
 </dialog>
+<dialog id="messagesDialog" aria-labelledby="messagesTitle"><div class="dialog-head"><div><h2 id="messagesTitle">رسائل المحفظة</h2><p id="messagesScope"></p></div><button type="button" class="icon-button" data-inbox="close" aria-label="إغلاق الرسائل">×</button></div><p class="hint warn">تحديث فوري داخل هذه المعاينة فقط. لا ربط مصرفي، ولا إشعارات بين هواتف مختلفة أو عند إغلاق التطبيق.</p><div id="messagesBody"></div></dialog>
 <noscript><p>تحتاج المعاينة إلى تفعيل JavaScript. لا يتم تنفيذ أي معاملات حقيقية.</p></noscript>
 <script src="family-v2.js?v=2.0.0"></script>
 <script src="platform-2.1.1.js?v=2.1.1"></script>
 <script src="money-input-2.1.2.js?v=2.1.2"></script>
+<script src="messages-2.2.js?v=2.2.0"></script>
 </body>
 </html>
