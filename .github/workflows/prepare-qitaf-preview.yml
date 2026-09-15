@@ -1,0 +1,64 @@
+name: Prepare Qitaf browser preview
+on:
+  push:
+    branches: [qitaf-preview-prepare-20260916]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out preview tools
+        uses: actions/checkout@v4
+        with:
+          path: tools
+      - name: Preserve the existing website exactly
+        uses: actions/checkout@v4
+        with:
+          ref: '988b9374a4e503971e728a7be45bc251efb06c9e'
+          path: site
+      - name: Download already-tested Qitaf v0.3 web build
+        uses: actions/download-artifact@v4
+        with:
+          name: qitaf-demo-v0.3
+          run-id: 34403463765
+          repository: nzeeh/nzeeh.github.io
+          github-token: ${{ github.token }}
+          path: bundle
+      - name: Prepare isolated qitaf directory
+        run: python3 tools/prepare_qitaf_preview.py bundle/qitaf-web-v0.3.zip site/qitaf
+      - name: Install browser test client
+        run: python3 -m pip install --quiet playwright
+      - name: Test preview and capture the actual screen
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory site > /tmp/qitaf-http.log 2>&1 &
+          python3 tools/test_qitaf_preview.py
+      - name: Stage only Qitaf without publishing other changes
+        working-directory: site
+        run: |
+          set -euo pipefail
+          git config user.name 'Qitaf Preview Build'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- qitaf
+          python3 - <<'PY'
+          import subprocess
+          paths=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          assert paths and all(p.startswith('qitaf/') for p in paths), paths
+          print('Only qitaf/ is changed; existing websites are preserved.')
+          PY
+          git commit -m 'Publish isolated Qitaf v0.3 browser preview'
+          git push origin HEAD:refs/heads/qitaf-preview-ready-20260916
+          git rev-parse HEAD > ../QITAF_PREVIEW_COMMIT.txt
+      - name: Save browser verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qitaf-preview-verification-20260916
+          path: |
+            QITAF_PREVIEW_COMMIT.txt
+            QITAF_PREVIEW_CHECK.json
+            qitaf-browser-preview.png
+          if-no-files-found: warn
+          retention-days: 7
