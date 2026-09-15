@@ -1,0 +1,11 @@
+{
+  "app": "Qitaf",
+  "version": "0.3.0+3",
+  "demo": true,
+  "source_commit": "db30af4736e023301bfd66a78ca8fac1a6a418c1",
+  "build_run": 34403463765,
+  "web_archive_sha256": "ee57a0fd4ec7dcb2448ce31ffe8ebc88dd7a7f13293ac7983b63ddc5400b5c0a",
+  "path": "/qitaf/",
+  "live_payments": false,
+  "live_streaming": false
+}

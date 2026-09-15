@@ -1,0 +1,20 @@
+{
+  "name": "قِطاف — عرض تجريبي",
+  "short_name": "قِطاف",
+  "start_url": "/qitaf/",
+  "display": "standalone",
+  "background_color": "#FFF9EF",
+  "theme_color": "#8B2D3C",
+  "description": "العرض التجريبي لتطبيق قِطاف v0.3",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "assets/assets/icon/qitaf_icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "scope": "/qitaf/"
+}
