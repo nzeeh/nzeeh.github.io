@@ -1,4 +1,4 @@
-name: Inspect Qitaf v0.4 source
+name: Inspect Qitaf feed source
 on:
   push:
     branches: [qitaf-inspect-20260916]
@@ -24,14 +24,9 @@ jobs:
           python3 integrate_v03.py
           python3 ../finish_v03.py
           python3 ../finish_v04.py
-      - name: Print relevant source for next safe patch
+      - name: Print feed and shared widgets
         run: |
-          set -euo pipefail
-          echo '===== PRODUCT MODEL ====='
-          sed -n '1,220p' build_workspace/qitaf_app/lib/core/models/product.dart
-          echo '===== HOME BASKET ====='
-          sed -n '1,360p' build_workspace/qitaf_app/lib/features/basket/home_basket_screen.dart
-          echo '===== PRODUCT SHEET ====='
-          sed -n '1,340p' build_workspace/qitaf_app/lib/features/product/product_sheet.dart
-          echo '===== CART ====='
-          sed -n '1,260p' build_workspace/qitaf_app/lib/features/cart/cart_screen.dart
+          echo '===== FEED ====='
+          sed -n '1,360p' build_workspace/qitaf_app/lib/features/feed/feed_screen.dart
+          echo '===== COMMON WIDGETS ====='
+          sed -n '1,300p' build_workspace/qitaf_app/lib/widgets/common_widgets.dart
