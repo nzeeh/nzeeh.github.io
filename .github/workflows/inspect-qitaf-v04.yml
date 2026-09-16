@@ -1,0 +1,37 @@
+name: Inspect Qitaf v0.4 source
+on:
+  push:
+    branches: [qitaf-inspect-20260916]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct current v0.4 source
+        run: |
+          set -euo pipefail
+          cat qitaf_source.b64.part-* | base64 --decode > /tmp/base.zip
+          cat qitaf_v02_overlay.b64.part-* | base64 --decode > /tmp/v02.zip
+          cat qitaf_v02_hotfix.b64.part-* | base64 --decode > /tmp/hotfix.zip
+          cat qitaf_v03_upgrade.b64.part-* | base64 --decode > /tmp/v03.zip
+          mkdir -p build_workspace
+          for archive in /tmp/base.zip /tmp/v02.zip /tmp/hotfix.zip /tmp/v03.zip; do unzip -o -q "$archive" -d build_workspace; done
+          cd build_workspace
+          python3 patch_base.py
+          python3 integrate_v03.py
+          python3 ../finish_v03.py
+          python3 ../finish_v04.py
+      - name: Print relevant source for next safe patch
+        run: |
+          set -euo pipefail
+          echo '===== PRODUCT MODEL ====='
+          sed -n '1,220p' build_workspace/qitaf_app/lib/core/models/product.dart
+          echo '===== HOME BASKET ====='
+          sed -n '1,360p' build_workspace/qitaf_app/lib/features/basket/home_basket_screen.dart
+          echo '===== PRODUCT SHEET ====='
+          sed -n '1,340p' build_workspace/qitaf_app/lib/features/product/product_sheet.dart
+          echo '===== CART ====='
+          sed -n '1,260p' build_workspace/qitaf_app/lib/features/cart/cart_screen.dart
