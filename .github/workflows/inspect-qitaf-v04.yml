@@ -1,4 +1,4 @@
-name: Inspect Qitaf feed source
+name: Inspect Qitaf demo trust signals
 on:
   push:
     branches: [qitaf-inspect-20260916]
@@ -24,9 +24,11 @@ jobs:
           python3 integrate_v03.py
           python3 ../finish_v03.py
           python3 ../finish_v04.py
-      - name: Print feed and shared widgets
+      - name: Find trust-signal and count references
         run: |
-          echo '===== FEED ====='
-          sed -n '1,360p' build_workspace/qitaf_app/lib/features/feed/feed_screen.dart
-          echo '===== COMMON WIDGETS ====='
-          sed -n '1,300p' build_workspace/qitaf_app/lib/widgets/common_widgets.dart
+          set -euo pipefail
+          cd build_workspace/qitaf_app
+          echo '===== VIEWERS ====='
+          grep -R -n "viewers\|isVerified\|verified_rounded\|product.likes\|compactCount" lib test || true
+          echo '===== DEMO CLAIMS ====='
+          grep -R -n "موثق\|موثقة\|مباشر" lib test || true
