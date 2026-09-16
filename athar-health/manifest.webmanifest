@@ -1,0 +1,13 @@
+{
+  "name": "ATHAR Health Public Preview",
+  "short_name": "ATHAR",
+  "description": "Public preview of verified medical short-video platform.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050807",
+  "theme_color": "#071713",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": []
+}
