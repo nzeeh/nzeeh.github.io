@@ -1,0 +1,142 @@
+name: Masarra 0.4.2 Date Flexibility
+
+on:
+  push:
+    branches: [masarra-pro-v0.4.2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore verified Masarra 0.4.2 source
+        run: bash .masarra-v042/reconstruct.sh
+      - name: Test and sync Android
+        working-directory: Masarra-Pro-v0.4.2
+        run: |
+          npm install --no-audit --no-fund
+          npm test | tee v042-node-tests.txt
+          python3 scripts/standalone.py
+          npx cap sync android
+          node scripts/configure-native.mjs
+          grep -q 'versionCode 6' android/app/build.gradle
+          grep -q 'versionName "0.4.2"' android/app/build.gradle
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'platform-tools'
+      - name: Build preview APK and unsigned AAB
+        working-directory: Masarra-Pro-v0.4.2/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleDebug bundleRelease
+      - name: Prepare Android delivery
+        working-directory: Masarra-Pro-v0.4.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ../delivery-android
+          cp android/app/build/outputs/apk/debug/app-debug.apk ../delivery-android/Masarra-Pro-v0.4.2-preview.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab ../delivery-android/Masarra-Pro-v0.4.2-unsigned.aab
+          cp Masarra-Pro-Preview.html README_AR.md CHANGELOG_AR.md INSTALL_AR.txt v042-node-tests.txt ../delivery-android/
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs ../delivery-android/Masarra-Pro-v0.4.2-preview.apk > ../delivery-android/APK-VERIFICATION.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging ../delivery-android/Masarra-Pro-v0.4.2-preview.apk > ../delivery-android/APK-METADATA.txt
+          grep -q "package: name='com.masarra.yemen.preview' versionCode='6' versionName='0.4.2'" ../delivery-android/APK-METADATA.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,zipfile
+          root=Path('.'); src=root/'www'; native=root/'android/app/src/main/assets/public'; rows=[]
+          for p in sorted(x for x in src.rglob('*') if x.is_file()):
+              rel=p.relative_to(src); q=native/rel
+              assert q.is_file(), rel
+              a=hashlib.sha256(p.read_bytes()).hexdigest(); b=hashlib.sha256(q.read_bytes()).hexdigest()
+              assert a==b, rel
+              rows.append({'file':str(rel),'sha256':a})
+          Path('../delivery-android/NATIVE-WWW-SHA256.json').write_text(json.dumps({'count':len(rows),'files':rows},ensure_ascii=False,indent=2))
+          out=Path('../delivery-android/Masarra-Pro-v0.4.2-Source-Android-iOS.zip')
+          excluded={'node_modules','.gradle','build','build-ios','data','.git','__pycache__'}
+          with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
+              for p in root.rglob('*'):
+                  if not p.is_file(): continue
+                  rel=p.relative_to(root)
+                  if any(x in rel.parts for x in excluded): continue
+                  z.write(p,Path(root.name)/rel)
+          PY
+          (cd ../delivery-android && sha256sum *.apk *.aab *.zip > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Masarra-v042-Android-Delivery
+          path: delivery-android/
+          if-no-files-found: error
+          retention-days: 30
+
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore verified Masarra 0.4.2 source
+        run: bash .masarra-v042/reconstruct.sh
+      - name: Test and sync iOS
+        working-directory: Masarra-Pro-v0.4.2
+        run: |
+          npm install --no-audit --no-fund
+          npm test | tee v042-node-tests.txt
+          python3 scripts/standalone.py
+          npx cap sync ios
+          node scripts/configure-native.mjs
+          python3 scripts/ios-icon.py
+          grep -q 'MARKETING_VERSION = 0.4.2;' ios/App/App.xcodeproj/project.pbxproj
+          grep -q 'CURRENT_PROJECT_VERSION = 6;' ios/App/App.xcodeproj/project.pbxproj
+      - name: Compile iOS simulator without signing
+        working-directory: Masarra-Pro-v0.4.2
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild -version | tee XCODE-VERSION.txt
+          xcrun --sdk iphonesimulator --show-sdk-version | tee IOS-SIMULATOR-SDK.txt
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO build | tee ios-build.log
+      - name: Prepare iOS evidence
+        if: always()
+        working-directory: Masarra-Pro-v0.4.2
+        run: |
+          mkdir -p ../delivery-ios
+          cp README_AR.md CHANGELOG_AR.md INSTALL_AR.txt v042-node-tests.txt ../delivery-ios/ 2>/dev/null || true
+          cp XCODE-VERSION.txt IOS-SIMULATOR-SDK.txt ../delivery-ios/ 2>/dev/null || true
+          if [ -f ios-build.log ]; then tail -150 ios-build.log > ../delivery-ios/IOS-BUILD-RESULT.txt; fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          root=Path('.'); src=root/'www'; native=root/'ios/App/App/public'
+          if native.exists():
+              rows=[]
+              for p in sorted(x for x in src.rglob('*') if x.is_file()):
+                  rel=p.relative_to(src); q=native/rel
+                  assert q.is_file(), rel
+                  a=hashlib.sha256(p.read_bytes()).hexdigest(); b=hashlib.sha256(q.read_bytes()).hexdigest()
+                  assert a==b, rel
+                  rows.append({'file':str(rel),'sha256':a})
+              Path('../delivery-ios/NATIVE-WWW-SHA256.json').write_text(json.dumps({'count':len(rows),'files':rows},ensure_ascii=False,indent=2))
+          PY
+          echo 'This validates the iOS simulator build only. No signed IPA was produced.' > ../delivery-ios/NO-SIGNED-IPA.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Masarra-v042-iOS-Delivery
+          path: delivery-ios/
+          if-no-files-found: error
+          retention-days: 30
