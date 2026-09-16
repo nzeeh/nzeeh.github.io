@@ -1,0 +1,10 @@
+Qitaf local demo 0.5.0+5
+New: truthful demo trust signals plus selected-package and comparable unit-price clarity.
+Application ID: com.qitaf.qitaf.demo3 (unchanged)
+No production wallet, authentication server, delivery service or inter-user livestream service is connected.
+Source commit: dd543c1797aee55a7e9aaa8d7ca6ce319adea27d
+Wed Sep 16 00:12:19 UTC 2026
+Flutter 3.47.2 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision d3b14c8769 (3 weeks ago) • 2026-08-26 16:07:51 -0700
+Engine • hash 1cf1c4773fb941c4c74a7f8bb144a8837596c0f4 (revision a804b26164) (20 days ago) • 2026-08-26 18:46:13.000Z
+Tools • Dart 3.13.2 • DevTools 2.60.0

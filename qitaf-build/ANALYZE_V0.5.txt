@@ -1,0 +1,16 @@
+Analyzing qitaf_app...                                          
+
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/core/models/basket_plan.dart:45:32 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/core/models/basket_plan.dart:58:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/core/services/read_aloud.dart:52:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/core/state/app_store.dart:177:9 • curly_braces_in_flow_control_structures
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/basket/home_basket_screen.dart:23:18 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/basket/home_basket_screen.dart:25:22 • prefer_const_constructors
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/features/cart/cart_screen.dart:110:43 • curly_braces_in_flow_control_structures
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement • lib/features/checkout/checkout_flow.dart:188:15 • deprecated_member_use
+   info • 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement • lib/features/checkout/checkout_flow.dart:510:17 • deprecated_member_use
+   info • 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre. Try replacing the use of the deprecated member with the replacement • lib/features/checkout/checkout_flow.dart:511:17 • deprecated_member_use
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/farmer/farmer_studio_screen.dart:572:17 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/feed/feed_screen.dart:178:24 • prefer_const_constructors
+
+12 issues found. (ran in 9.0s)
