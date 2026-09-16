@@ -52,13 +52,15 @@ s = s.replace(
     "        : selectedPackagePrice;\n",
     1,
 )
-anchor = """                 _choiceSection('الوزن أو العبوة', product.weightOptions, selection.weight, (value) {
-                   setState(() => selection = selection.copyWith(weight: value));
-                 }),
-"""
-if anchor not in s:
-    raise RuntimeError('Could not find weight choice section')
-price_panel = anchor + """                 Container(
+weight_start = s.find("_choiceSection('الوزن أو العبوة'")
+if weight_start < 0:
+    raise RuntimeError('Could not find weight choice section start')
+weight_end = s.find('}),', weight_start)
+if weight_end < 0:
+    raise RuntimeError('Could not find weight choice section end')
+weight_end += len('}),')
+price_panel = """
+                 Container(
                    key: const ValueKey('unit-price-breakdown'),
                    margin: const EdgeInsets.only(bottom: 22),
                    padding: const EdgeInsets.all(14),
@@ -94,7 +96,7 @@ price_panel = anchor + """                 Container(
                    ),
                  ),
 """
-s = s.replace(anchor, price_panel, 1)
+s = s[:weight_end] + price_panel + s[weight_end:]
 sheet.write_text(s, encoding='utf-8')
 
 # 4) Version and documentation.
