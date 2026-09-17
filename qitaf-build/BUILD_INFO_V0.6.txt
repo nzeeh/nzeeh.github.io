@@ -1,0 +1,10 @@
+Qitaf local demo 0.6.0+6
+New: clearer editable-budget/no-auto-purchase guidance, explicit equal-pricing rule, and safe Dart auto-fixes before tests.
+Application ID: com.qitaf.qitaf.demo3 (unchanged)
+No production wallet, authentication server, delivery service or inter-user livestream service is connected.
+Source commit: 04b8d9ea7d795db38aca64a6c538b1e8db79dea7
+Thu Sep 17 00:09:04 UTC 2026
+Flutter 3.47.2 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision d3b14c8769 (3 weeks ago) • 2026-08-26 16:07:51 -0700
+Engine • hash 1cf1c4773fb941c4c74a7f8bb144a8837596c0f4 (revision a804b26164) (21 days ago) • 2026-08-26 18:46:13.000Z
+Tools • Dart 3.13.2 • DevTools 2.60.0
