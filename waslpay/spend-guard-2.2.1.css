@@ -1,0 +1,3 @@
+/* Read-only family allowance warnings; no balance or payment logic. */
+.spend-guard{display:block;margin-top:8px;padding:7px 9px;border-radius:9px;font-size:10px;line-height:1.7;background:#fff4d6;color:#755711;border:1px solid #ead8a0}.spend-guard.exhausted{background:#fff0ee;color:#a33f38;border-color:#efcfca}.message-card .spend-guard{margin-bottom:1px}.spend-guard-detail{font-size:12px;margin-top:14px}.payment-live .spend-guard-live{margin:0;max-width:220px;flex:0 1 auto}
+@media(max-width:430px){.payment-live .spend-guard-live{width:100%;max-width:none;order:3}.payment-live{flex-wrap:wrap}}
