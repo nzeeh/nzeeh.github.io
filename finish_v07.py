@@ -19,9 +19,9 @@ text = text.replace(old_helper, new_helper, 1)
 home.write_text(text, encoding='utf-8')
 cleanup_log.append('Home Basket: clarified that a lower/different manual budget is accepted; no pricing behavior changed.')
 
-# 2) Remove three behavior-preserving curly-brace analyzer lints. Limit the
-# transformation to the exact three files reported by v0.6 analyzer. Every
-# single-line if with a semicolon body becomes the equivalent braced form.
+# 2) Remove the three analyzer-reported curly-brace issues without altering
+# behavior. The analyzer step below is the source of truth for lint regression,
+# rather than a broad source regex that can misclassify valid formatted Dart.
 def brace_single_line_ifs(path: Path) -> int:
     lines = path.read_text(encoding='utf-8').splitlines()
     out_lines = []
@@ -98,7 +98,9 @@ if status.exists():
     st = status.read_text(encoding='utf-8').replace('Version 0.6.0+6.', 'Version 0.7.0+7.')
     status.write_text(st, encoding='utf-8')
 
-# 5) Regression guards for today's accessibility copy and lint cleanups.
+# 5) Regression guards for today's user-facing accessibility copy and the
+# explicit deprecated Switch migration. Analyzer output itself is guarded by CI
+# and is intentionally not duplicated with a source-pattern lint test.
 test = root / 'test/v07_accessibility_quality_source_test.dart'
 test.write_text(
     """import 'dart:io';
@@ -112,19 +114,6 @@ void main() {
     expect(source, contains('اكتب المبلغ الذي يناسبك'));
     expect(source, contains('مبلغ آخر'));
     expect(source, contains('لا يوجد شراء تلقائي'));
-  });
-
-  test('reported single-line if lints stay cleaned up', () {
-    final paths = [
-      'lib/core/models/basket_plan.dart',
-      'lib/core/state/app_store.dart',
-      'lib/features/cart/cart_screen.dart',
-    ];
-    final oneLineIf = RegExp(r'^\\s*if\\s*\\(.*\\)\\s+[^\\{\\n].*;\\s*$', multiLine: true);
-    for (final path in paths) {
-      final source = File(path).readAsStringSync();
-      expect(oneLineIf.hasMatch(source), isFalse, reason: path);
-    }
   });
 
   test('deprecated activeColor property stays removed from checkout', () {
