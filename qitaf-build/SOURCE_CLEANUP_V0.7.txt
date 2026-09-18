@@ -1,0 +1,5 @@
+Home Basket: clarified that a lower/different manual budget is accepted; no pricing behavior changed.
+lib/core/models/basket_plan.dart: wrapped 4 single-line if statement(s) in braces.
+lib/core/state/app_store.dart: wrapped 10 single-line if statement(s) in braces.
+lib/features/cart/cart_screen.dart: wrapped 1 single-line if statement(s) in braces.
+checkout_flow.dart: migrated one deprecated activeColor property to activeThumbColor.
