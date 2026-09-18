@@ -1,0 +1,35 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const target=process.argv[2]||path.resolve(__dirname,'../sw.js');
+const source=fs.readFileSync(target,'utf8'),cacheName=source.match(/const CACHE='([^']+)'/)[1];
+const handlers={},deleted=[],items=new Map();let claimed=false,skipped=false,network=true,count=0;
+const cache={async addAll(reqs){for(const r of reqs)items.set(r.url,new Response(r.url.endsWith('index.html')?'OFFLINE_DEMO':'STATIC'));},async match(req){const u=typeof req==='string'?req:req.url;const v=items.get(u);return v&&v.clone();}};
+vm.runInNewContext(source,{URL,Request,Response,Set,console,self:{location:{href:'https://nzeeh.github.io/waslpay/sw.js'},addEventListener:(n,f)=>handlers[n]=f,clients:{claim:async()=>{claimed=true;}},skipWaiting:async()=>{skipped=true;}},caches:{open:async()=>cache,keys:async()=>['unrelated-project','waslpay-demo-shell-old','waslpay-demo-shell-2.3.0',cacheName],delete:async n=>{deleted.push(n);}},fetch:async()=>{if(!network)throw Error('Offline');return new Response('NETWORK');}});
+const fetchEvent=(url,{mode='cors',method='GET',headers={},cache='default'}={})=>{let out;handlers.fetch({request:{url,mode,method,headers:new Headers(headers),cache},respondWith:p=>out=p});return out||null;};
+const base='https://nzeeh.github.io/waslpay/';
+function test(name,fn){fn();console.log('PASS '+name);count++;}
+(async()=>{
+ let pending;handlers.install({waitUntil:p=>pending=p});await pending;
+ test('Precache contains 20 explicit public demo assets',()=>assert.equal(items.size,20));
+ test('2.3.1 access guard included at exact version',()=>assert(items.has(base+'household-access-2.3.1.js?v=2.3.1')));
+ for (const file of ['community-start-2.3.js','community-domain-2.3.js','community-ui-2.3.js','community-2.3.css']) test('Community exact asset: '+file,()=>assert(items.has(base+file+'?v=2.3.0')));
+ test('Installation never forces activation',()=>assert.equal(skipped,false));
+ handlers.activate({waitUntil:p=>pending=p});await pending;
+ test('Old WaslPay caches cleaned without touching another project',()=>assert.deepEqual(deleted,['waslpay-demo-shell-old','waslpay-demo-shell-2.3.0']));
+ test('Worker claims clients after activation',()=>assert.equal(claimed,true));
+ network=false;
+ const offline=await(await fetchEvent(base+'?v=2.3.1',{mode:'navigate'})).text();test('Offline navigation query gets shell',()=>assert.equal(offline,'OFFLINE_DEMO'));
+ const patch=await(await fetchEvent(base+'household-access-2.3.1.js?v=2.3.1')).text();test('Exact access guard available offline',()=>assert.equal(patch,'STATIC'));
+ test('Future access guard never gets stale copy',()=>assert.equal(fetchEvent(base+'household-access-2.3.1.js?v=FUTURE'),null));
+ test('Unversioned guard bypasses cache',()=>assert.equal(fetchEvent(base+'household-access-2.3.1.js'),null));
+ test('Other project untouched',()=>assert.equal(fetchEvent('https://nzeeh.github.io/qitaf/',{mode:'navigate'}),null));
+ test('Payment API untouched',()=>assert.equal(fetchEvent(base+'api/payment'),null));
+ test('POST not cached',()=>assert.equal(fetchEvent(base,{mode:'navigate',method:'POST'}),null));
+ test('Cross-origin not cached',()=>assert.equal(fetchEvent('https://example.org/waslpay/'),null));
+ test('Auth bypass',()=>assert.equal(fetchEvent(base+'icons/icon-192.png',{headers:{Authorization:'Bearer test'}}),null));
+ test('No-store bypass',()=>assert.equal(fetchEvent(base+'icons/icon-192.png',{cache:'no-store'}),null));
+ network=true;const fresh=await(await fetchEvent(base,{mode:'navigate'})).text();test('Online navigation fetches fresh HTML',()=>assert.equal(fresh,'NETWORK'));
+ handlers.message({data:{type:'OTHER'},waitUntil:p=>pending=p});test('Unrelated message cannot activate',()=>assert.equal(skipped,false));
+ handlers.message({data:{type:'ACTIVATE_UPDATE'},waitUntil:p=>pending=p});await pending;test('Explicit update activates worker',()=>assert.equal(skipped,true));
+ console.log(count+' mocked service-worker checks passed.');
+})().catch(e=>{console.error(e);process.exit(1);});
