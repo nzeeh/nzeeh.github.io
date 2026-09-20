@@ -1,0 +1,10 @@
+Qitaf local demo 0.8.0+8
+New: truthful payment-simulation copy and Flutter RadioGroup migration with zero analyzer issues.
+Application ID: com.qitaf.qitaf.demo3 (unchanged)
+No production wallet, authentication server, delivery service or inter-user livestream service is connected.
+Source commit: d308d86a83b69d80f9ae2f89c4939e05333a1374
+Sun Sep 20 00:20:28 UTC 2026
+Flutter 3.47.2 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision d3b14c8769 (3 weeks ago) • 2026-08-26 16:07:51 -0700
+Engine • hash 1cf1c4773fb941c4c74a7f8bb144a8837596c0f4 (revision a804b26164) (24 days ago) • 2026-08-26 18:46:13.000Z
+Tools • Dart 3.13.2 • DevTools 2.60.0

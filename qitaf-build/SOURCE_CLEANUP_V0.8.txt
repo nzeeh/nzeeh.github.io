@@ -1,0 +1,3 @@
+checkout_flow.dart: migrated payment radios to RadioGroup<String>; deprecated Radio groupValue/onChanged removed.
+checkout_flow.dart: wallet/friend/COD copy now states clearly that v0.8 is a local simulation and sends no real link or money.
+checkout_flow.dart: friend-payment countdown is described in the visible status text as a demo timer, not a real crop reservation.

@@ -1,0 +1,19 @@
+Computing fixes in qitaf_app...
+Applying fixes...
+
+lib/core/models/basket_plan.dart
+  curly_braces_in_flow_control_structures - 1 fix
+
+lib/core/services/read_aloud.dart
+  curly_braces_in_flow_control_structures - 1 fix
+
+lib/features/basket/home_basket_screen.dart
+  prefer_const_constructors - 1 fix
+
+lib/features/farmer/farmer_studio_screen.dart
+  prefer_const_constructors - 1 fix
+
+lib/features/feed/feed_screen.dart
+  prefer_const_constructors - 1 fix
+
+5 fixes made in 5 files.
