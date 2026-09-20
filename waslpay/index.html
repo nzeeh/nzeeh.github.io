@@ -23,14 +23,14 @@
 <main class="layout">
 <aside class="intro">
  <a class="brand" href="#home"><span class="brand-mark">و</span><span>وَصْل <b dir="ltr">Pay</b><small>تفاصيل صغيرة. فرق كبير.</small></span></a>
- <div class="eyebrow">هاتف · تابلت · متصفح · معاينة 2.3.2</div>
+ <div class="eyebrow">هاتف · تابلت · متصفح · معاينة 2.3.3</div>
  <h1>محفظة واحدة.<br>أقرب <em>لعائلتك.</em></h1>
  <p>مصروفهم من رصيدك، ضمن حدود تختارها.<br>وفرحة العيد تصلهم في ظرفٍ يحمل محبتك.</p>
  <div class="intro-item"><span>01</span><div><strong>مخصصات تتجدد</strong><small>كل يوم، كل أسبوع، أو كل شهر.</small></div></div>
  <div class="intro-item"><span>02</span><div><strong>«العسب» بطريقتنا</strong><small>ظروف وردية وزرقاء وذهبية، وتهنئة خاصة.</small></div></div>
  <div class="intro-item"><span>03</span><div><strong>قرارات أوضح، قلق أقل</strong><small>حدود للصرف، طلب زيادة، وصندوق لهدف الأسرة.</small></div></div>
  <div class="desktop-notice">نموذج تفاعلي محلي فقط، بلا بنك أو حسابات حقيقية. الأسماء والمبالغ أمثلة، ولا يتم إرسال أموال أو دعوات.</div>
- <span class="revision">تحديث السبت 19 سبتمبر 2026 · 2.3.2</span>
+ <span class="revision">تحديث الأحد 20 سبتمبر 2026 · 2.3.3</span>
 </aside>
 <div class="phone">
  <div class="demo-ribbon">معاينة فقط • لا أموال حقيقية ولا ربط بنكي</div>
@@ -47,13 +47,13 @@
 <dialog id="installDialog" aria-labelledby="installTitle">
  <div class="dialog-head"><h2 id="installTitle">وَصْل، على جهازك</h2><button type="button" class="icon-button" data-platform-action="close-install" aria-label="إغلاق تعليمات التثبيت">×</button></div>
  <div class="install-hero"><img src="icons/icon-192.png" width="74" height="74" alt="أيقونة وَصْل Pay"><h3>عائلتك أقرب، بضغطة.</h3><p>أضف المعاينة إلى الشاشة الرئيسية.<br>للهواتف والأجهزة اللوحية، دون تسجيل في ChatGPT.</p></div>
- <div class="install-tabs" role="group" aria-label="نوع جهازك"><button type="button" data-platform-action="tab" data-platform="android" aria-pressed="true">Android</button><button type="button" data-platform-action="tab" data-platform="apple" aria-pressed="false">iPhone / iPad</button></div>
+ <div class="install-tabs" role="group" aria-label="نوع جهازك"><button type="button" data-platform-action="tab" data-platform="android" aria-pressed="true">Android</button><button type="button" data-platform-action="tab" data-platform":apple" aria-pressed="false">iPhone / iPad</button></div>
  <ol id="installSteps" class="install-steps"></ol>
  <button type="button" id="nativeInstall" class="primary" data-platform-action="native-install" hidden>تثبيت التطبيق</button>
  <p class="hint warn">هذه نسخة ويب تجريبية، وليست تطبيقًا منشورًا في App Store أو Google Play. ملف APK السابق لا يُحدَّث تلقائيًا.</p>
  <p id="offlineHint" class="install-foot">بعد تحميل الملفات لأول مرة، تتاح المعاينة المحفوظة دون إنترنت إذا دعم المتصفح ذلك. لا تُنفّذ دفعات حقيقية، ولا تنتقل بيانات التجربة بين الأجهزة.</p>
 </dialog>
-<dialog id="messagesDialog" aria-labelledby="messagesTitle"><div class="dialog-head"><div><h2 id="messagesTitle">رسائل المحفظة</h2><p id="messagesScope"></p></div><button type="button" class="icon-button" data-inbox="close" aria-label="إغلاق الرسائل">×</button></div><p class="hint warn">تحديث فوري داخل هذه المعاينة فقط. لا ربط مصرفي، ولا إشعارات بين هواتف مختلفة أو عند إغلاق التطبيق.</p><div id="messagesBody"></div></dialog>
+<dialog id="messagesDialog" aria-labelledby="messagesTitle"><div class="dialog-head"><div><h2 id="messagesTitle">رسائل المحفظة</h2><p id="messagesScope"></p></div><button type="button" class="icon-button" data-inbox="close" aria-label="إغلاق الرسائل">×</button></div><p class="hint warn">تحديx� فوري داخل هذه المعاينة فقط. لا ربط مصرفي، ولا إشعارات بين هواتف مختلفة أو عند إغلاق التطبيق.</p><div id="messagesBody"></div></dialog>
 <noscript><p>تحتاج المعاينة إلى تفعيل JavaScript. لا يتم تنفيذ أي معاملات حقيقية.</p></noscript>
 <script src="community-start-2.3.js?v=2.3.0"></script>
 <script src="family-v2.js?v=2.0.0"></script>
@@ -65,5 +65,6 @@
 <script src="community-ui-2.3.js?v=2.3.0"></script>
 <script src="household-access-2.3.1.js?v=2.3.1"></script>
 <script src="accessibility-2.3.2.js?v=2.3.2"></script>
+<script src="household-message-summary-2.3.3.js?v=2.3.3"></script>
 </body>
 </html>
