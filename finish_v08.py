@@ -97,14 +97,28 @@ if old_group not in s:
     raise RuntimeError('Payment choice block did not match the tested v0.7 source')
 s = s.replace(old_group, new_group, 1)
 
-old_radio = """            Radio<String>(
-                value: value,
-                groupValue: method,
-                onChanged: (next) => setState(() => method = next!)),
-"""
-if old_radio not in s:
-    raise RuntimeError('Deprecated Radio block did not match the tested v0.7 source')
-s = s.replace(old_radio, "            Radio<String>(value: value),\n", 1)
+# v0.7 was formatted after safe fixes, so whitespace around the deprecated
+# Radio callback can vary. Match the semantic block rather than brittle spacing.
+radio_pattern = re.compile(
+    r"Radio<String>\(\s*"
+    r"value\s*:\s*value\s*,\s*"
+    r"groupValue\s*:\s*method\s*,\s*"
+    r"onChanged\s*:\s*\(next\)\s*=>\s*"
+    r"setState\(\s*\(\)\s*=>\s*method\s*=\s*next!\s*\)\s*,?\s*"
+    r"\)",
+    re.MULTILINE,
+)
+s, radio_count = radio_pattern.subn('Radio<String>(value: value)', s, count=1)
+if radio_count != 1:
+    # Keep failure explicit instead of silently producing a mixed deprecated/new API.
+    context = '\n'.join(
+        line for line in s.splitlines()
+        if 'Radio<String>' in line or 'groupValue:' in line or 'onChanged:' in line
+    )
+    raise RuntimeError(
+        'Deprecated Radio block was not migrated exactly once. '
+        f'Matched {radio_count}. Relevant source lines:\n{context}'
+    )
 
 replacements = {
     "? 'إرسال طلب الدفع للصديق'": "? 'معاينة طلب الدفع للصديق'",
