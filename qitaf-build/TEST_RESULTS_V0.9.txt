@@ -1,0 +1,32 @@
+00:00 +0: loading /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/v06_clarity_source_test.dart
+00:00 +0: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/v06_clarity_source_test.dart: Home Basket explains editability and no automatic purchase
+00:00 +1: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/v06_clarity_source_test.dart: Product configurator states the same-price rule
+00:01 +2: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +3: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +4: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +5: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +6: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +7: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +8: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +9: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +10: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +11: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +12: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +13: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +14: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +15: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:01 +16: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: Qitaf asks whether the user is a buyer or seller
+00:02 +17: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: buyer selection opens the vertical farm feed
+00:02 +18: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: buyer selection opens the vertical farm feed
+00:02 +19: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: buyer selection opens the vertical farm feed
+00:03 +20: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/widget_test.dart: saved seller role opens the simple farmer dashboard
+00:03 +21: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/v08_payment_truthfulness_source_test.dart: payment selection uses RadioGroup without deprecated Radio callbacks
+00:03 +22: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/v08_payment_truthfulness_source_test.dart: friend payment is explicitly a non-sending simulation
+00:03 +23: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/budget_shortcuts_source_test.dart: Home Basket exposes inclusive quick budgets and manual amount
+00:04 +24: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/basket_ui_test.dart: Open home basket directly from the feed
+00:04 +25: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/basket_ui_test.dart: Open home basket directly from the feed
+00:04 +26: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/basket_ui_test.dart: Open home basket directly from the feed
+00:05 +27: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/basket_ui_test.dart: Home basket adds to cart and opens recipient selection
+00:06 +28: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/basket_ui_test.dart: Gift mode preselects another recipient
+00:06 +29: /home/runner/work/nzeeh.github.io/nzeeh.github.io/build_workspace/qitaf_app/test/basket_ui_test.dart: New basket layout is usable on a narrow phone
+00:07 +30: All tests passed!

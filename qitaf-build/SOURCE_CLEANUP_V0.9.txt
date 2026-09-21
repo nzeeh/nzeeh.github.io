@@ -1,0 +1,3 @@
+checkout_flow.dart: replaced the final payment-section sentence that implied a real friend-payment send.
+home_basket_screen.dart: added a visible, screen-reader-friendly budget-usage meter.
+home_basket_screen.dart: Arabic read-aloud summary now includes remaining or exceeded budget.
