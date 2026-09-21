@@ -36,10 +36,10 @@ if b.count(old_summary) != 1:
     raise RuntimeError(f'Expected one read-aloud summary tail, found {b.count(old_summary)}')
 b = b.replace(old_summary, new_summary, 1)
 
-anchor = '            if (store.storageWarning != null)'
+anchor = 'if (store.storageWarning != null)'
 if b.count(anchor) != 1:
     raise RuntimeError(f'Expected one storage-warning anchor, found {b.count(anchor)}')
-meter = """            const SizedBox(height: 12),
+meter = """const SizedBox(height: 12),
             Container(
               key: const ValueKey('budget-meter-card'),
               padding: const EdgeInsets.all(14),
@@ -78,7 +78,7 @@ meter = """            const SizedBox(height: 12),
                 ],
               ),
             ),
-"""
+            """
 b = b.replace(anchor, meter + anchor, 1)
 basket.write_text(b, encoding='utf-8')
 log.append('home_basket_screen.dart: added a visible, screen-reader-friendly budget-usage meter.')
