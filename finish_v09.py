@@ -1,0 +1,136 @@
+from pathlib import Path
+import re
+
+root = Path.cwd() / 'qitaf_app'
+out = Path.cwd().parent / 'qitaf-v09-output'
+out.mkdir(parents=True, exist_ok=True)
+log = []
+
+checkout = root / 'lib/features/checkout/checkout_flow.dart'
+s = checkout.read_text(encoding='utf-8')
+old_subtitle = "subtitle:\n                'يمكنك الدفع من محفظتك، أو إرسال طلب آمن إلى صديق، أو الدفع عند الاستلام.',"
+new_subtitle = "subtitle:\n                'اختر مسارًا تجريبيًا للمعاينة: محفظة، دفع صديق، أو دفع عند الاستلام. لا يتم إرسال أو خصم أي مبلغ في هذه النسخة.',"
+if old_subtitle not in s:
+    raise RuntimeError('Payment section subtitle did not match v0.8 source')
+s = s.replace(old_subtitle, new_subtitle, 1)
+checkout.write_text(s, encoding='utf-8')
+log.append('checkout_flow.dart: removed the last payment-section sentence that implied a real friend payment request could be sent.')
+
+basket = root / 'lib/features/basket/home_basket_screen.dart'
+b = basket.read_text(encoding='utf-8')
+old_calc = "    final remaining = (_budget * 100 - totalMinor) / 100;\n    final valid = _rows.isNotEmpty && remaining >= 0 && !_submitted;\n"
+new_calc = "    final remaining = (_budget * 100 - totalMinor) / 100;\n    final usedFraction = _budget <= 0\n        ? 0.0\n        : (totalMinor / (_budget * 100)).clamp(0.0, 1.0).toDouble();\n    final valid = _rows.isNotEmpty && remaining >= 0 && !_submitted;\n"
+if old_calc not in b:
+    raise RuntimeError('Home Basket calculation block did not match v0.8 source')
+b = b.replace(old_calc, new_calc, 1)
+old_summary_tail = "        'التوصيل التقديري ${AppStore.deliveryRiyals} ريال. الإجمالي ${formatMoney(totalMinor / 100)} ريال.';"
+new_summary_tail = "        'التوصيل التقديري ${AppStore.deliveryRiyals} ريال. الإجمالي ${formatMoney(totalMinor / 100)} ريال. '\n        '${remaining >= 0 ? 'المتبقي من الميزانية ${formatMoney(remaining)} ريال' : 'التجاوز عن الميزانية ${formatMoney(-remaining)} ريال'}.';"
+if old_summary_tail not in b:
+    raise RuntimeError('Home Basket read-aloud summary tail did not match v0.8 source')
+b = b.replace(old_summary_tail, new_summary_tail, 1)
+old_remaining = """                  Text(
+                      remaining >= 0
+                          ? 'يبقى من ميزانيتك ${formatMoney(remaining)} ريال'
+                          : 'تجاوزت ميزانيتك ${formatMoney(-remaining)} ريال',
+                      key: const ValueKey('remaining-budget'),
+                      style: TextStyle(
+                          color: remaining >= 0
+                              ? QitafColors.terraceGreen
+                              : QitafColors.burgundy,
+                          fontWeight: FontWeight.w800)),
+"""
+new_remaining = old_remaining + """                  const SizedBox(height: 10),
+                  Text(
+                    'استخدمت ${formatMoney(totalMinor / 100)} من ${formatMoney(_budget.toDouble())} ريال',
+                    key: const ValueKey('budget-usage-text'),
+                    style: const TextStyle(
+                      color: QitafColors.muted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Semantics(
+                    label: 'مؤشر الميزانية',
+                    value: remaining >= 0
+                        ? 'المتبقي ${formatMoney(remaining)} ريال'
+                        : 'تجاوز الميزانية ${formatMoney(-remaining)} ريال',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        key: const ValueKey('budget-progress'),
+                        value: usedFraction,
+                        minHeight: 10,
+                      ),
+                    ),
+                  ),
+"""
+if old_remaining not in b:
+    raise RuntimeError('Home Basket remaining-budget block did not match v0.8 source')
+b = b.replace(old_remaining, new_remaining, 1)
+basket.write_text(b, encoding='utf-8')
+log.append('home_basket_screen.dart: added visible and screen-reader-friendly budget usage meter.')
+log.append('home_basket_screen.dart: Arabic read-aloud summary now includes remaining or exceeded budget.')
+
+pubspec = root / 'pubspec.yaml'
+pub = pubspec.read_text(encoding='utf-8')
+pub, n = re.subn(r'(?m)^version:\s*[^\n]+$', 'version: 0.9.0+9', pub, count=1)
+if n != 1:
+    raise RuntimeError('Could not update pubspec version to 0.9.0+9')
+pubspec.write_text(pub, encoding='utf-8')
+
+readme = root / 'README.md'
+if readme.exists():
+    r = readme.read_text(encoding='utf-8')
+    r = r.replace('# Qitaf 0.8.0+8 — سلة البيت', '# Qitaf 0.9.0+9 — سلة البيت')
+    if '## New in 0.9' not in r:
+        marker = '\n## New in 0.8\n'
+        if marker not in r:
+            raise RuntimeError('README v0.8 insertion marker not found')
+        section = """
+## New in 0.9
+- Fixes the remaining payment heading that could still sound like a real payment link was sent; every payment path is explicitly a local demo.
+- Adds a visual budget-usage meter to Home Basket with accessible semantics for screen readers.
+- Extends the optional Arabic read-aloud summary to say how much of the budget remains or how far it is exceeded.
+- Android application id remains com.qitaf.qitaf.demo3. Production payment, delivery, authentication and inter-user livestream services remain disconnected.
+
+"""
+        r = r.replace(marker, section + '## New in 0.8\n', 1)
+    readme.write_text(r, encoding='utf-8')
+
+status = root / 'BUILD_STATUS.md'
+if status.exists():
+    st = status.read_text(encoding='utf-8').replace('Version 0.8.0+8.', 'Version 0.9.0+9.')
+    status.write_text(st, encoding='utf-8')
+
+test = root / 'test/v09_budget_accessibility_source_test.dart'
+test.write_text(
+    """import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('payment heading no longer implies a real friend-payment send', () {
+    final source = File('lib/features/checkout/checkout_flow.dart').readAsStringSync();
+    expect(source, contains('اختر مسارًا تجريبيًا للمعاينة'));
+    expect(source, contains('لا يتم إرسال أو خصم أي مبلغ في هذه النسخة'));
+    expect(source, isNot(contains('أو إرسال طلب آمن إلى صديق')));
+  });
+
+  test('home basket exposes accessible budget usage meter', () {
+    final source = File('lib/features/basket/home_basket_screen.dart').readAsStringSync();
+    expect(source, contains("ValueKey('budget-usage-text')"));
+    expect(source, contains("ValueKey('budget-progress')"));
+    expect(source, contains("label: 'مؤشر الميزانية'"));
+    expect(source, contains('المتبقي من الميزانية'));
+    expect(source, contains('التجاوز عن الميزانية'));
+  });
+}
+""",
+    encoding='utf-8',
+)
+
+(out / 'SOURCE_CLEANUP.txt').write_text('\n'.join(log) + '\n', encoding='utf-8')
+print('Qitaf v0.9 applied: truthful payment heading plus accessible Home Basket budget meter.')
+for row in log:
+    print('-', row)
