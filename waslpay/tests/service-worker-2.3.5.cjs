@@ -1,0 +1,35 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const source=fs.readFileSync(path.resolve(__dirname,'../sw.js'),'utf8'),cacheName=source.match(/const CACHE='([^']+)'/)[1];
+const handlers={},deleted=[],items=new Map();let claimed=false,skipped=false,network=true,count=0;
+const cache={async addAll(reqs){for(const r of reqs)items.set(r.url,new Response(r.url.endsWith('index.html')?'OFFLINE_DEMO':'STATIC'));},async match(req){const u=typeof req==='string'?req:req.url;const v=items.get(u);return v&&v.clone();}};
+const context={URL,Request,Response,Set,console,self:{location:{href:'https://nzeeh.github.io/waslpay/sw.js'},addEventListener:(n,f)=>handlers[n]=f,clients:{claim:async()=>{claimed=true;}},skipWaiting:async()=>{skipped=true;}},caches:{open:async()=>cache,keys:async()=>['unrelated-property-site','waslpay-demo-shell-2.3.4',cacheName],delete:async n=>{deleted.push(n);}},fetch:async()=>{if(!network)throw Error('Offline');return new Response('NETWORK');}};
+vm.runInNewContext(source,context);
+const base='https://nzeeh.github.io/waslpay/';
+const event=(url,{mode='cors',method='GET',headers={},cache='default'}={})=>{let out;handlers.fetch({request:{url,mode,method,headers:new Headers(headers),cache},respondWith:p=>out=p});return out||null;};
+async function test(name,fn){await fn();count++;console.log('PASS '+name);}
+(async()=>{
+ let pending;handlers.install({waitUntil:p=>pending=p});await pending;
+ await test('precache contains 23 explicit public assets',()=>assert.equal(items.size,23));
+ await test('new household JS is precached',()=>assert.ok(items.has(base+'household-message-summary-2.3.5.js?v=2.3.5')));
+ await test('new household CSS is precached',()=>assert.ok(items.has(base+'household-message-summary-2.3.5.css?v=2.3.5')));
+ await test('old 2.3.4 household script is absent',()=>assert.ok(!items.has(base+'household-message-summary-2.3.4.js?v=2.3.4')));
+ handlers.activate({waitUntil:p=>pending=p});await pending;
+ await test('old WaslPay cache cleaned without touching unrelated project',()=>assert.deepEqual(deleted,['waslpay-demo-shell-2.3.4']));
+ await test('new worker claims clients',()=>assert.equal(claimed,true));
+ network=false;
+ await test('offline navigation falls back to cached shell',async()=>assert.equal(await (await event(base+'?v=2.3.5',{mode:'navigate'})).text(),'OFFLINE_DEMO'));
+ await test('new JS works offline',async()=>assert.equal(await (await event(base+'household-message-summary-2.3.5.js?v=2.3.5')).text(),'STATIC'));
+ await test('new CSS works offline',async()=>assert.equal(await (await event(base+'household-message-summary-2.3.5.css?v=2.3.5')).text(),'STATIC'));
+ await test('future JS version is not replaced by stale cache',()=>assert.equal(event(base+'household-message-summary-2.3.5.js?v=FUTURE'),null));
+ await test('unversioned household JS bypasses cache',()=>assert.equal(event(base+'household-message-summary-2.3.5.js'),null));
+ await test('other project navigation is untouched',()=>assert.equal(event('https://nzeeh.github.io/qitaf/',{mode:'navigate'}),null));
+ await test('API-like traffic is untouched',()=>assert.equal(event(base+'api/payment'),null));
+ await test('POST requests are never cached',()=>assert.equal(event(base,{mode:'navigate',method:'POST'}),null));
+ await test('cross-origin traffic is untouched',()=>assert.equal(event('https://example.org/waslpay/'),null));
+ await test('Authorization request bypasses cache',()=>assert.equal(event(base+'icons/icon-192.png',{headers:{Authorization:'Bearer test'}}),null));
+ await test('no-store request bypasses cache',()=>assert.equal(event(base+'icons/icon-192.png',{cache:'no-store'}),null));
+ handlers.message({data:{type:'ACTIVATE_UPDATE'},waitUntil:p=>pending=p});await pending;
+ await test('explicit update message activates worker',()=>assert.equal(skipped,true));
+ console.log('\n'+count+' mocked service-worker tests passed.');
+})().catch(e=>{console.error(e);process.exit(1);});
