@@ -19,23 +19,23 @@ new_cta = "const Text('اختر الكمية', style: TextStyle(fontSize: 13)),"
 if s.count(old_cta) != 1:
     raise RuntimeError(f'Expected one feed buy CTA, found {s.count(old_cta)}')
 s = s.replace(old_cta, new_cta, 1)
-stock_block = """                    Text('مخزون تجريبي · ${product.stock} ${product.unitLabel}',
-                        style: const TextStyle(
-                            color: QitafColors.terraceGreen,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700)),
-"""
-if s.count(stock_block) != 1:
-    raise RuntimeError('Feed stock block anchor not found exactly once')
-stock_plus = stock_block + """                    Text(
+stock_pattern = re.compile(
+    r"(Text\('مخزون تجريبي · \$\{product\.stock\} \$\{product\.unitLabel\}',\s*"
+    r"style:\s*const TextStyle\(\s*color:\s*QitafColors\.terraceGreen,\s*"
+    r"fontSize:\s*12,\s*fontWeight:\s*FontWeight\.w700\)\),)",
+    re.S,
+)
+small_pack = """
+                    Text(
                         'أصغر عبوة: ${product.weightOptions.first.label}',
                         key: const ValueKey('smallest-pack-label'),
                         style: const TextStyle(
                             color: QitafColors.muted,
                             fontSize: 11,
-                            fontWeight: FontWeight.w700)),
-"""
-s = s.replace(stock_block, stock_plus, 1)
+                            fontWeight: FontWeight.w700)),"""
+s, n = stock_pattern.subn(lambda m: m.group(1) + small_pack, s, count=1)
+if n != 1:
+    raise RuntimeError(f'Feed stock widget anchor not found exactly once; matched {n}')
 feed.write_text(s, encoding='utf-8')
 log.append('feed_screen.dart: demo stock is labeled explicitly; CTA no longer says purchase; smallest pack is visible.')
 
