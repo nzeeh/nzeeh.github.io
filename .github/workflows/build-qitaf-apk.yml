@@ -7,7 +7,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: qitaf-v09-${{ github.ref }}
+  group: qitaf-v10-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build-apk:
@@ -24,7 +24,7 @@ jobs:
           channel: stable
           flutter-version: '3.47.2'
           cache: true
-      - name: Restore source and apply v0.9
+      - name: Restore source and apply v0.10
         run: |
           set -euo pipefail
           cat qitaf_source.b64.part-* | base64 --decode > /tmp/base.zip
@@ -32,8 +32,8 @@ jobs:
           cat qitaf_v02_hotfix.b64.part-* | base64 --decode > /tmp/hotfix.zip
           cat qitaf_v03_upgrade.b64.part-* | base64 --decode > /tmp/v03.zip
           echo '86dfb39f775c7ff229583127fe6f662240633d6c72d89a08df3eb84ee9277b32  /tmp/v03.zip' | sha256sum -c -
-          rm -rf build_workspace qitaf-v09-output
-          mkdir -p build_workspace qitaf-v09-output
+          rm -rf build_workspace qitaf-v10-output
+          mkdir -p build_workspace qitaf-v10-output
           for archive in /tmp/base.zip /tmp/v02.zip /tmp/hotfix.zip /tmp/v03.zip; do
             unzip -t "$archive"
             unzip -o -q "$archive" -d build_workspace
@@ -41,7 +41,7 @@ jobs:
           cd build_workspace
           python3 patch_base.py
           python3 integrate_v03.py
-          for script in ../finish_v03.py ../finish_v04.py ../finish_v05.py ../finish_v06.py ../finish_v07.py ../finish_v08.py ../finish_v09.py; do
+          for script in ../finish_v03.py ../finish_v04.py ../finish_v05.py ../finish_v06.py ../finish_v07.py ../finish_v08.py ../finish_v09.py ../finish_v10.py; do
             python3 "$script"
           done
           python3 -m pip install --quiet pillow
@@ -62,102 +62,102 @@ jobs:
           p.write_text(s)
           for filename in ['android/app/src/main/res/values/strings.xml','android/app/src/main/res/values-ar/strings.xml']:
               p=Path(filename)
-              p.write_text(p.read_text().replace('>Qitaf<','>Qitaf 0.9<').replace('>قِطاف<','>قِطاف 0.9<'))
+              p.write_text(p.read_text().replace('>Qitaf<','>Qitaf 0.10<').replace('>قِطاف<','>قِطاف 0.10<'))
           PY
       - name: Resolve, safe fixes and format
         working-directory: build_workspace/qitaf_app
         run: |
           set -o pipefail
           flutter pub get
-          dart fix --apply 2>&1 | tee ../../qitaf-v09-output/DART_FIX.txt
+          dart fix --apply 2>&1 | tee ../../qitaf-v10-output/DART_FIX.txt
           dart format lib test
       - name: Analyze with zero-issue gate
         working-directory: build_workspace/qitaf_app
         run: |
           set -o pipefail
-          flutter analyze 2>&1 | tee ../../qitaf-v09-output/ANALYZE.txt
-          grep -q 'No issues found' ../../qitaf-v09-output/ANALYZE.txt
+          flutter analyze 2>&1 | tee ../../qitaf-v10-output/ANALYZE.txt
+          grep -q 'No issues found' ../../qitaf-v10-output/ANALYZE.txt
       - name: Unit and interface tests
         working-directory: build_workspace/qitaf_app
         run: |
           set -o pipefail
-          flutter test --reporter expanded 2>&1 | tee ../../qitaf-v09-output/TEST_RESULTS.txt
+          flutter test --reporter expanded 2>&1 | tee ../../qitaf-v10-output/TEST_RESULTS.txt
       - name: Build Android APK
         working-directory: build_workspace/qitaf_app
         run: flutter build apk --release
       - name: Verify APK, signature and package identity
         run: |
           set -euo pipefail
-          cp build_workspace/qitaf_app/build/app/outputs/flutter-apk/app-release.apk qitaf-v09-output/qitaf-demo-v0.9.apk
-          unzip -t qitaf-v09-output/qitaf-demo-v0.9.apk | tail -2
+          cp build_workspace/qitaf_app/build/app/outputs/flutter-apk/app-release.apk qitaf-v10-output/qitaf-demo-v0.10.apk
+          unzip -t qitaf-v10-output/qitaf-demo-v0.10.apk | tail -2
           signer=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
-          "$signer" verify --verbose --print-certs qitaf-v09-output/qitaf-demo-v0.9.apk | tee qitaf-v09-output/APK_SIGNATURE.txt
-          cert_digest=$(awk '/certificate SHA-256 digest:/ {print $NF; exit}' qitaf-v09-output/APK_SIGNATURE.txt)
-          previous_digest='caaf902ced4debfea369ab014b5c16293c129299003c123e8be9e05311964021'
+          "$signer" verify --verbose --print-certs qitaf-v10-output/qitaf-demo-v0.10.apk | tee qitaf-v10-output/APK_SIGNATURE.txt
+          cert_digest=$(awk '/certificate SHA-256 digest:/ {print $NF; exit}' qitaf-v10-output/APK_SIGNATURE.txt)
+          previous_digest='d616dfcfd215e8c7543a8271bdaa39e521c48bd6f8618eb109a8a897def188b8'
           {
-            echo "v0.8 recorded certificate SHA-256: $previous_digest"
-            echo "v0.9 certificate SHA-256: $cert_digest"
+            echo "v0.9 recorded certificate SHA-256: $previous_digest"
+            echo "v0.10 certificate SHA-256: $cert_digest"
             if [ "$cert_digest" = "$previous_digest" ]; then
               echo 'Signature match: YES. Android can treat this as an upgrade when version/package constraints also allow it.'
             else
               echo 'Signature match: NO. Do not claim in-place upgrade compatibility; keep the prior demo installed if its local data matters.'
             fi
-          } | tee qitaf-v09-output/UPGRADE_COMPATIBILITY.txt
-          (cd qitaf-v09-output && sha256sum qitaf-demo-v0.9.apk > qitaf-demo-v0.9.sha256)
+          } | tee qitaf-v10-output/UPGRADE_COMPATIBILITY.txt
+          (cd qitaf-v10-output && sha256sum qitaf-demo-v0.10.apk > qitaf-demo-v0.10.sha256)
           {
-            echo 'Qitaf local demo 0.9.0+9'
-            echo 'New: truthful payment heading and accessible Home Basket budget-usage meter with richer Arabic read-aloud summary.'
+            echo 'Qitaf local demo 0.10.0+10'
+            echo 'New: truthful demo-stock/CTA wording plus smallest-pack visibility for budget-friendly browsing.'
             echo 'Application ID: com.qitaf.qitaf.demo3 (unchanged)'
-            echo 'No production wallet, authentication server, delivery service or inter-user livestream service is connected.'
+            echo 'No production wallet, live inventory, authentication server, delivery service or inter-user livestream service is connected.'
             echo "Source commit: $GITHUB_SHA"
             date -u
             flutter --version
-          } > qitaf-v09-output/BUILD_INFO.txt
+          } > qitaf-v10-output/BUILD_INFO.txt
           cd build_workspace
-          zip -qr ../qitaf-v09-output/qitaf-flutter-source-v0.9.zip qitaf_app -x '*/build/*' '*/.dart_tool/*' '*/.gradle/*' '*/local.properties' '*/__pycache__/*'
+          zip -qr ../qitaf-v10-output/qitaf-flutter-source-v0.10.zip qitaf_app -x '*/build/*' '*/.dart_tool/*' '*/.gradle/*' '*/local.properties' '*/__pycache__/*'
       - name: Build browser preview archive
         working-directory: build_workspace/qitaf_app
         run: |
           flutter build web --release --no-web-resources-cdn
           cd build/web
-          zip -qr ../../../../qitaf-v09-output/qitaf-web-v0.9.zip .
+          zip -qr ../../../../qitaf-v10-output/qitaf-web-v0.10.zip .
       - name: Prepare full package
         run: |
-          cp CHANGELOG_V0.9_AR.txt qitaf-v09-output/
-          cd qitaf-v09-output
-          zip -q -9 qitaf-demo-v0.9-package.zip qitaf-demo-v0.9.apk qitaf-demo-v0.9.sha256 APK_SIGNATURE.txt UPGRADE_COMPATIBILITY.txt BUILD_INFO.txt CHANGELOG_V0.9_AR.txt SOURCE_CLEANUP.txt DART_FIX.txt ANALYZE.txt TEST_RESULTS.txt qitaf-flutter-source-v0.9.zip qitaf-web-v0.9.zip
-          sha256sum qitaf-demo-v0.9-package.zip > qitaf-demo-v0.9-package.sha256
-      - name: Upload tested v0.9 files
+          cp CHANGELOG_V0.10_AR.txt qitaf-v10-output/
+          cd qitaf-v10-output
+          zip -q -9 qitaf-demo-v0.10-package.zip qitaf-demo-v0.10.apk qitaf-demo-v0.10.sha256 APK_SIGNATURE.txt UPGRADE_COMPATIBILITY.txt BUILD_INFO.txt CHANGELOG_V0.10_AR.txt SOURCE_CLEANUP.txt DART_FIX.txt ANALYZE.txt TEST_RESULTS.txt qitaf-flutter-source-v0.10.zip qitaf-web-v0.10.zip
+          sha256sum qitaf-demo-v0.10-package.zip > qitaf-demo-v0.10-package.sha256
+      - name: Upload tested v0.10 files
         uses: actions/upload-artifact@v4
         with:
-          name: qitaf-demo-v0.9
-          path: qitaf-v09-output/
+          name: qitaf-demo-v0.10
+          path: qitaf-v10-output/
           if-no-files-found: error
           retention-days: 30
-      - name: Publish tested v0.9 files on build branch
+      - name: Publish tested v0.10 files on build branch
         run: |
           set -euo pipefail
           mkdir -p qitaf-build
-          cp qitaf-v09-output/qitaf-demo-v0.9.apk qitaf-build/
-          cp qitaf-v09-output/qitaf-demo-v0.9.sha256 qitaf-build/
-          cp qitaf-v09-output/qitaf-demo-v0.9-package.zip qitaf-build/
-          cp qitaf-v09-output/qitaf-demo-v0.9-package.sha256 qitaf-build/
-          cp qitaf-v09-output/qitaf-flutter-source-v0.9.zip qitaf-build/
-          cp qitaf-v09-output/qitaf-web-v0.9.zip qitaf-build/
-          cp qitaf-v09-output/BUILD_INFO.txt qitaf-build/BUILD_INFO_V0.9.txt
-          cp qitaf-v09-output/CHANGELOG_V0.9_AR.txt qitaf-build/
-          cp qitaf-v09-output/APK_SIGNATURE.txt qitaf-build/APK_SIGNATURE_V0.9.txt
-          cp qitaf-v09-output/UPGRADE_COMPATIBILITY.txt qitaf-build/UPGRADE_COMPATIBILITY_V0.9.txt
-          cp qitaf-v09-output/SOURCE_CLEANUP.txt qitaf-build/SOURCE_CLEANUP_V0.9.txt
-          cp qitaf-v09-output/DART_FIX.txt qitaf-build/DART_FIX_V0.9.txt
-          cp qitaf-v09-output/ANALYZE.txt qitaf-build/ANALYZE_V0.9.txt
-          cp qitaf-v09-output/TEST_RESULTS.txt qitaf-build/TEST_RESULTS_V0.9.txt
+          cp qitaf-v10-output/qitaf-demo-v0.10.apk qitaf-build/
+          cp qitaf-v10-output/qitaf-demo-v0.10.sha256 qitaf-build/
+          cp qitaf-v10-output/qitaf-demo-v0.10-package.zip qitaf-build/
+          cp qitaf-v10-output/qitaf-demo-v0.10-package.sha256 qitaf-build/
+          cp qitaf-v10-output/qitaf-flutter-source-v0.10.zip qitaf-build/
+          cp qitaf-v10-output/qitaf-web-v0.10.zip qitaf-build/
+          cp qitaf-v10-output/BUILD_INFO.txt qitaf-build/BUILD_INFO_V0.10.txt
+          cp qitaf-v10-output/CHANGELOG_V0.10_AR.txt qitaf-build/
+          cp qitaf-v10-output/APK_SIGNATURE.txt qitaf-build/APK_SIGNATURE_V0.10.txt
+          cp qitaf-v10-output/UPGRADE_COMPATIBILITY.txt qitaf-build/UPGRADE_COMPATIBILITY_V0.10.txt
+          cp qitaf-v10-output/SOURCE_CLEANUP.txt qitaf-build/SOURCE_CLEANUP_V0.10.txt
+          cp qitaf-v10-output/DART_FIX.txt qitaf-build/DART_FIX_V0.10.txt
+          cp qitaf-v10-output/ANALYZE.txt qitaf-build/ANALYZE_V0.10.txt
+          cp qitaf-v10-output/TEST_RESULTS.txt qitaf-build/TEST_RESULTS_V0.10.txt
           git config user.name 'Qitaf Build Bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add qitaf-build/qitaf-demo-v0.9.apk qitaf-build/qitaf-demo-v0.9.sha256 qitaf-build/qitaf-demo-v0.9-package.zip qitaf-build/qitaf-demo-v0.9-package.sha256 qitaf-build/qitaf-flutter-source-v0.9.zip qitaf-build/qitaf-web-v0.9.zip qitaf-build/BUILD_INFO_V0.9.txt qitaf-build/CHANGELOG_V0.9_AR.txt qitaf-build/APK_SIGNATURE_V0.9.txt qitaf-build/UPGRADE_COMPATIBILITY_V0.9.txt qitaf-build/SOURCE_CLEANUP_V0.9.txt qitaf-build/DART_FIX_V0.9.txt qitaf-build/ANALYZE_V0.9.txt qitaf-build/TEST_RESULTS_V0.9.txt
+          git add qitaf-build/qitaf-demo-v0.10.apk qitaf-build/qitaf-demo-v0.10.sha256 qitaf-build/qitaf-demo-v0.10-package.zip qitaf-build/qitaf-demo-v0.10-package.sha256 qitaf-build/qitaf-flutter-source-v0.10.zip qitaf-build/qitaf-web-v0.10.zip qitaf-build/BUILD_INFO_V0.10.txt qitaf-build/CHANGELOG_V0.10_AR.txt qitaf-build/APK_SIGNATURE_V0.10.txt qitaf-build/UPGRADE_COMPATIBILITY_V0.10.txt qitaf-build/SOURCE_CLEANUP_V0.10.txt qitaf-build/DART_FIX_V0.10.txt qitaf-build/ANALYZE_V0.10.txt qitaf-build/TEST_RESULTS_V0.10.txt
           if git diff --cached --quiet; then
-            echo 'No v0.9 publish changes.'
+            echo 'No v0.10 publish changes.'
           else
-            git commit -m '[skip ci] Publish tested Qitaf demo v0.9'
+            git commit -m '[skip ci] Publish tested Qitaf demo v0.10'
             git push origin HEAD:qitaf-apk-build
           fi
