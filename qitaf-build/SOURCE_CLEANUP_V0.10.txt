@@ -1,0 +1,4 @@
+feed_screen.dart: demo stock is labeled explicitly; CTA no longer says purchase; smallest pack is visible.
+product_sheet.dart: stock is marked as demo and buy-now wording now describes the actual local action.
+role_selection_screen.dart: buyer onboarding now says preparing a cart rather than completing a real purchase.
+widget_test.dart: updated the buyer feed smoke test for the clearer quantity CTA.
