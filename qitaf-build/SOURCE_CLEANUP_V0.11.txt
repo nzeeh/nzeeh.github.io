@@ -1,0 +1,6 @@
+role_selection_screen.dart: seller/buyer claims now describe demo behavior; optional Arabic spoken guidance added.
+seller_home_screen.dart: removed fake order/view/sales metrics and verification cue; seller actions are labeled as local/demo.
+farmer_studio_screen.dart: removed fake verification/viewer cues; camera/live UI is explicitly a local demo, with sample chat and demo stock labeled.
+profile_screen.dart: seller entry point now says studio/preview rather than real selling or live broadcasting.
+qitaf_shell.dart: central seller action now says seller mode / shoot and show, not sell.
+widget_test.dart: updated buyer/seller smoke expectations to the truthful v0.11 labels.

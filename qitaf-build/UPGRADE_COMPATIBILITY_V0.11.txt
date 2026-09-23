@@ -1,0 +1,3 @@
+v0.10 recorded certificate SHA-256: a4f82fe460442191b9e4e58d74a4efc1d0b3dc1507cb9959934f77b59e2020bb
+v0.11 certificate SHA-256: 0c41de0eedb358c14bec01376a6036ea09b0824f2ce83663485bf2d42b9a509b
+Signature match: NO. Do not claim in-place upgrade compatibility; keep the prior demo installed if its local data matters.
