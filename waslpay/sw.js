@@ -1,8 +1,8 @@
 /* Cache public demo UI only; NEVER cache bank/API traffic or queue payments. */
 'use strict';
-const CACHE='waslpay-demo-shell-2.3.5';
+const CACHE='waslpay-demo-shell-2.3.6';
 const ROOT=new URL('./',self.location.href);
-const FILES=['./','index.html','family-v2.css?v=2.0.0','family-v2.js?v=2.0.0','responsive-2.1.css?v=2.1.0','platform-2.1.1.js?v=2.1.1','money-input-2.1.2.js?v=2.1.2','messages-2.2.js?v=2.2.0','messages-2.2.css?v=2.2.0','spend-guard-2.2.1.js?v=2.2.1','spend-guard-2.2.1.css?v=2.2.1','community-start-2.3.js?v=2.3.0','community-domain-2.3.js?v=2.3.0','community-ui-2.3.js?v=2.3.0','community-2.3.css?v=2.3.0','household-access-2.3.1.js?v=2.3.1','accessibility-2.3.2.js?v=2.3.2','household-message-summary-2.3.5.js?v=2.3.5','household-message-summary-2.3.5.css?v=2.3.5','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/apple-touch-icon.png'];
+const FILES=['./','index.html','family-v2.css?v=2.0.0','family-v2.js?v=2.0.0','responsive-2.1.css?v=2.1.0','platform-2.1.1.js?v=2.1.1','money-input-2.1.2.js?v=2.1.2','messages-2.2.js?v=2.2.0','messages-2.2.css?v=2.2.0','spend-guard-2.2.1.js?v=2.2.1','spend-guard-2.2.1.css?v=2.2.1','community-start-2.3.js?v=2.3.0','community-domain-2.3.js?v=2.3.0','community-ui-2.3.js?v=2.3.0','community-2.3.css?v=2.3.0','household-access-2.3.1.js?v=2.3.1','accessibility-2.3.2.js?v=2.3.2','household-message-summary-2.3.6.js?v=2.3.6','household-message-summary-2.3.5.css?v=2.3.5','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/apple-touch-icon.png'];
 const urls=FILES.map(p=>new URL(p,ROOT).href);
 const allowed=new Set(urls);
 const documents=new Set([ROOT.pathname,new URL('index.html',ROOT).pathname]);
