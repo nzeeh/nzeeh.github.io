@@ -126,7 +126,30 @@ for old, new in {
 profile.write_text(p, encoding='utf-8')
 log.append('profile_screen.dart: seller entry point now says studio/preview rather than real selling or live broadcasting.')
 
-# 5) Version and docs.
+# 5) Bottom navigation: the center action switches/opens seller demo, it does not complete a sale.
+shell = root / 'lib/widgets/qitaf_shell.dart'
+q = shell.read_text(encoding='utf-8')
+old_shell = "isSeller ? 'صوّر وبِع' : 'ابدأ البيع'"
+new_shell = "isSeller ? 'صوّر واعرض' : 'وضع البائع'"
+if q.count(old_shell) != 1:
+    raise RuntimeError(f'shell seller CTA: expected one, found {q.count(old_shell)}')
+shell.write_text(q.replace(old_shell, new_shell, 1), encoding='utf-8')
+log.append('qitaf_shell.dart: central seller action now says seller mode / shoot and show, not sell.')
+
+widget_test = root / 'test/widget_test.dart'
+wt = widget_test.read_text(encoding='utf-8')
+for old, new in {
+    "expect(find.text('ابدأ البيع'), findsOneWidget);": "expect(find.text('وضع البائع'), findsOneWidget);",
+    "expect(find.text('ابدأ البث الآن'), findsOneWidget);": "expect(find.text('افتح معاينة الكاميرا'), findsOneWidget);",
+    "expect(find.text('صوّر وبِع'), findsOneWidget);": "expect(find.text('صوّر واعرض'), findsOneWidget);",
+}.items():
+    if wt.count(old) != 1:
+        raise RuntimeError(f'widget test expectation {old!r}: expected one, found {wt.count(old)}')
+    wt = wt.replace(old, new, 1)
+widget_test.write_text(wt, encoding='utf-8')
+log.append('widget_test.dart: updated buyer/seller smoke expectations to the truthful v0.11 labels.')
+
+# 6) Version and docs.
 pubspec = root / 'pubspec.yaml'
 pub = pubspec.read_text(encoding='utf-8')
 pub, n = re.subn(r'(?m)^version:\s*[^\n]+$', 'version: 0.11.0+11', pub, count=1)
@@ -161,7 +184,7 @@ status = root / 'BUILD_STATUS.md'
 st = status.read_text(encoding='utf-8').replace('Version 0.10.0+10.', 'Version 0.11.0+11.')
 status.write_text(st, encoding='utf-8')
 
-# 6) Regression source tests: trust + accessibility.
+# 7) Regression source tests: trust + accessibility.
 test = root / 'test/v11_seller_truth_accessibility_source_test.dart'
 test.write_text(
     """import 'dart:io';
