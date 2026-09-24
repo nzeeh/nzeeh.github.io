@@ -9,106 +9,79 @@ log = []
 checkout = root / 'lib/features/checkout/checkout_flow.dart'
 s = checkout.read_text(encoding='utf-8')
 
-# 1) Optional Arabic read-aloud guide for the address step; do not pretend to listen to microphone.
+# 1) Optional Arabic read-aloud guide for the address step; never pretend to listen to the microphone.
 if "../../core/services/read_aloud.dart" not in s:
     anchor = "import '../../core/state/app_store.dart';\n"
     if s.count(anchor) != 1:
         raise RuntimeError('checkout import anchor missing')
     s = s.replace(anchor, anchor + "import '../../core/services/read_aloud.dart';\n", 1)
 
-# 2) Do not prefill realistic personal/address data in demo fields.
-replacements = {
-    "final nameController = TextEditingController(text: 'محمد');": "final nameController = TextEditingController();",
-    "final phoneController = TextEditingController(text: '77 123 4567');": "final phoneController = TextEditingController();",
-    "final cityController = TextEditingController(text: 'صنعاء');": "final cityController = TextEditingController();",
-    "final districtController = TextEditingController(text: 'شملان');": "final districtController = TextEditingController();",
-    "final streetController = TextEditingController(text: 'شارع الثلاثين');": "final streetController = TextEditingController();",
-    "final landmarkController = TextEditingController(text: 'جوار مدرسة الوحدة');": "final landmarkController = TextEditingController();",
-    "final detailsController = TextEditingController(text: 'البيت ذو الباب الأخضر');": "final detailsController = TextEditingController();",
+# 2) Remove realistic prefilled personal/address data from demo fields.
+controller_patterns = {
+    r"final nameController\s*=\s*TextEditingController\(text:\s*'محمد'\);": "final nameController = TextEditingController();",
+    r"final phoneController\s*=\s*TextEditingController\(text:\s*'77 123 4567'\);": "final phoneController = TextEditingController();",
+    r"final cityController\s*=\s*TextEditingController\(text:\s*'صنعاء'\);": "final cityController = TextEditingController();",
+    r"final districtController\s*=\s*TextEditingController\(text:\s*'شملان'\);": "final districtController = TextEditingController();",
+    r"final streetController\s*=\s*TextEditingController\(text:\s*'شارع الثلاثين'\);": "final streetController = TextEditingController();",
+    r"final landmarkController\s*=\s*TextEditingController\(text:\s*'جوار مدرسة الوحدة'\);": "final landmarkController = TextEditingController();",
+    r"final detailsController\s*=\s*TextEditingController\(text:\s*'البيت ذو الباب الأخضر'\);": "final detailsController = TextEditingController();",
+}
+for pattern, replacement in controller_patterns.items():
+    s, count = re.subn(pattern, replacement, s, count=1, flags=re.S)
+    if count != 1:
+        raise RuntimeError(f'controller pattern failed: {pattern}')
+
+for old, new in {
     "Text('قل العنوان بدل الكتابة',": "Text('اكتب العنوان أو اسمع الإرشاد',",
     "Text('مثال: صنعاء، شملان، جوار مدرسة الوحدة',": "Text('الإملاء الصوتي غير متصل بعد؛ لن يشغّل هذا الزر الميكروفون.',",
-    "TextButton(\n                    onPressed: _simulateVoiceAddress,\n                    child: const Text('تكلّم')),": "const ReadAloudButton(\n                  key: ValueKey('address-audio-guide'),\n                  label: 'اسمع الطريقة',\n                  text:\n                      'اكتب المحافظة أو المدينة، ثم المنطقة أو الحي، ثم الشارع وأقرب معلم معروف، وبعدها صف الباب أو المنزل باختصار. هذه النسخة لا تستمع إلى الميكروفون ولا تحفظ موقعًا حقيقيًا على الخريطة.',\n                ),",
-    "const SnackBar(\n                  content: Text('تم تثبيت نقطة تجريبية على الخريطة.')),": "const SnackBar(\n                  content: Text('معاينة فقط: الخريطة غير متصلة ولا تُحفظ إحداثيات أو موقع حقيقي.')),",
     "Text('حدد الباب على الخريطة',": "Text('معاينة مكان الباب',",
-}
-for old, new in replacements.items():
-    count = s.count(old)
-    if count != 1:
-        raise RuntimeError(f'checkout phrase {old!r}: expected one, found {count}')
+    "تم تثبيت نقطة تجريبية على الخريطة.": "معاينة فقط: الخريطة غير متصلة ولا تُحفظ إحداثيات أو موقع حقيقي.",
+}.items():
+    if s.count(old) != 1:
+        raise RuntimeError(f'checkout phrase {old!r}: expected one, found {s.count(old)}')
     s = s.replace(old, new, 1)
 
-field_calls = {
-    "_field(nameController, 'اسم المستلم', Icons.person_outline_rounded)": "_field(nameController, 'اسم المستلم', Icons.person_outline_rounded, hintText: 'مثال: أحمد')",
-    "_field(phoneController, 'رقم هاتف المستلم', Icons.phone_outlined,\n                keyboardType: TextInputType.phone)": "_field(phoneController, 'رقم هاتف المستلم', Icons.phone_outlined,\n                keyboardType: TextInputType.phone, hintText: 'مثال: 77 000 0000')",
-    "_field(cityController, 'المحافظة / المدينة',\n                      Icons.location_city_outlined)": "_field(cityController, 'المحافظة / المدينة',\n                      Icons.location_city_outlined, hintText: 'مثال: صنعاء')",
-    "_field(districtController, 'المنطقة أو الحي',\n                      Icons.map_outlined)": "_field(districtController, 'المنطقة أو الحي',\n                      Icons.map_outlined, hintText: 'مثال: شملان')",
-    "_field(streetController, 'الشارع', Icons.signpost_outlined)": "_field(streetController, 'الشارع', Icons.signpost_outlined, hintText: 'مثال: شارع الثلاثين')",
-    "_field(landmarkController, 'أقرب معلم معروف', Icons.place_outlined)": "_field(landmarkController, 'أقرب معلم معروف', Icons.place_outlined, hintText: 'مثال: جوار مدرسة أو مسجد معروف')",
-    "_field(detailsController, 'وصف الباب أو المنزل وملاحظة للسائق',\n              Icons.home_outlined,\n              maxLines: 2)": "_field(detailsController, 'وصف الباب أو المنزل وملاحظة للسائق',\n              Icons.home_outlined,\n              maxLines: 2, hintText: 'مثال: لون الباب أو علامة واضحة')",
-}
-for old, new in field_calls.items():
-    count = s.count(old)
-    if count != 1:
-        raise RuntimeError(f'field call {old!r}: expected one, found {count}')
-    s = s.replace(old, new, 1)
+button_pattern = re.compile(
+    r"TextButton\(\s*onPressed:\s*_simulateVoiceAddress,\s*child:\s*const Text\('تكلّم'\)\s*\)",
+    re.S,
+)
+spoken = """const ReadAloudButton(
+                  key: ValueKey('address-audio-guide'),
+                  label: 'اسمع الطريقة',
+                  text:
+                      'اكتب المحافظة أو المدينة، ثم المنطقة أو الحي، ثم الشارع وأقرب معلم معروف، وبعدها صف الباب أو المنزل باختصار. هذه النسخة لا تستمع إلى الميكروفون ولا تحفظ موقعًا حقيقيًا على الخريطة.',
+                )"""
+if len(button_pattern.findall(s)) != 1:
+    raise RuntimeError('voice demo button not found exactly once')
+s = button_pattern.sub(spoken, s, count=1)
 
-old_sig = """    TextInputType? keyboardType,
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
-    );
-  }
-"""
-new_sig = """    TextInputType? keyboardType,
-    int maxLines = 1,
-    String? hintText,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hintText,
-        prefixIcon: Icon(icon),
-      ),
-    );
-  }
-"""
-if s.count(old_sig) != 1:
-    raise RuntimeError(f'_field signature body expected once, found {s.count(old_sig)}')
-s = s.replace(old_sig, new_sig, 1)
-
-pattern = re.compile(r"\n  Future<void> _simulateVoiceAddress\(\) async \{.*?\n  \}\n\n  void _continue\(\)", re.S)
-if len(pattern.findall(s)) != 1:
+# Remove the old fake speech-recognition simulation and its fake listening dialog.
+voice_method = re.compile(r"\n  Future<void> _simulateVoiceAddress\(\) async \{.*?\n  \}\n\n  void _continue\(\)", re.S)
+if len(voice_method.findall(s)) != 1:
     raise RuntimeError('voice simulation method not found exactly once')
-s = pattern.sub("\n  void _continue()", s, count=1)
+s = voice_method.sub("\n  void _continue()", s, count=1)
 
-pattern_dialog = re.compile(r"\nclass _ListeningDialog extends StatelessWidget \{.*?\n\}\n", re.S)
-if len(pattern_dialog.findall(s)) != 1:
+listening_dialog = re.compile(r"\nclass _ListeningDialog extends StatelessWidget \{.*?\n\}\n", re.S)
+if len(listening_dialog.findall(s)) != 1:
     raise RuntimeError('listening dialog class not found exactly once')
-s = pattern_dialog.sub("\n", s, count=1)
+s = listening_dialog.sub("\n", s, count=1)
 
 checkout.write_text(s, encoding='utf-8')
-log.append('checkout_flow.dart: removed realistic prefilled personal data and fake speech/map actions; added example hints and optional Arabic read-aloud address guidance.')
+log.append('checkout_flow.dart: blank recipient/address fields by default; fake speech recognition removed; optional Arabic read-aloud guidance and truthful map preview added.')
 
+# 3) Regression tests for trust/accessibility behavior.
 test_file = root / 'test/v12_address_truth_accessibility_source_test.dart'
 test_file.write_text(r'''import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('recipient fields are blank by default and examples are hints only', () {
+  test('recipient fields are blank by default instead of realistic demo data', () {
     final source =
         File('lib/features/checkout/checkout_flow.dart').readAsStringSync();
     expect(source, contains('final nameController = TextEditingController();'));
     expect(source, contains('final phoneController = TextEditingController();'));
-    expect(source, contains("hintText: 'مثال: صنعاء'"));
-    expect(source, contains("hintText: 'مثال: 77 000 0000'"));
+    expect(source, contains('final cityController = TextEditingController();'));
     expect(source, isNot(contains("TextEditingController(text: 'محمد')")));
     expect(source, isNot(contains("TextEditingController(text: '77 123 4567')")));
   });
@@ -135,6 +108,7 @@ void main() {
 ''', encoding='utf-8')
 log.append('v12_address_truth_accessibility_source_test.dart: three regression tests added for blank demo fields, truthful voice guidance and truthful map preview.')
 
+# 4) Version bump.
 pubspec = root / 'pubspec.yaml'
 p = pubspec.read_text(encoding='utf-8')
 if p.count('version: 0.11.0+11') != 1:
