@@ -69,7 +69,42 @@ s = listening_dialog.sub("\n", s, count=1)
 checkout.write_text(s, encoding='utf-8')
 log.append('checkout_flow.dart: blank recipient/address fields by default; fake speech recognition removed; optional Arabic read-aloud guidance and truthful map preview added.')
 
-# 3) Regression tests for trust/accessibility behavior.
+# 3) Keep the existing checkout widget test meaningful after replacing fake
+# speech recognition with read-aloud guidance. Preserve its navigation steps,
+# then verify the new visible shortcut/copy without invoking the platform TTS plugin.
+widget_test = root / 'test/widget_test.dart'
+wt = widget_test.read_text(encoding='utf-8')
+old_title = "testWidgets('checkout offers accessibility shortcut for voice address'"
+start = wt.find(old_title)
+if start < 0:
+    raise RuntimeError('legacy checkout voice-address widget test not found')
+next_test = wt.find("\n  testWidgets(", start + len(old_title))
+end = next_test if next_test >= 0 else wt.rfind("\n}")
+if end <= start:
+    raise RuntimeError('could not determine legacy checkout widget-test boundary')
+block = wt[start:end]
+needle = "    expect(find.text('تكلّم'), findsOneWidget);"
+needle_at = block.find(needle)
+if needle_at < 0:
+    raise RuntimeError('legacy voice-address expectation not found')
+prefix = block[:needle_at]
+prefix = prefix.replace(
+    "testWidgets('checkout offers accessibility shortcut for voice address'",
+    "testWidgets('checkout offers truthful read-aloud address guidance'",
+    1,
+)
+replacement_block = prefix + """    expect(find.text('اسمع الطريقة'), findsOneWidget);
+    expect(
+      find.text('الإملاء الصوتي غير متصل بعد؛ لن يشغّل هذا الزر الميكروفون.'),
+      findsOneWidget,
+    );
+  });
+"""
+wt = wt[:start] + replacement_block + wt[end:]
+widget_test.write_text(wt, encoding='utf-8')
+log.append('widget_test.dart: stale fake-dictation checkout test updated to verify truthful read-aloud guidance without bypassing the flow.')
+
+# 4) Regression tests for trust/accessibility behavior.
 test_file = root / 'test/v12_address_truth_accessibility_source_test.dart'
 test_file.write_text(r'''import 'dart:io';
 
@@ -108,7 +143,7 @@ void main() {
 ''', encoding='utf-8')
 log.append('v12_address_truth_accessibility_source_test.dart: three regression tests added for blank demo fields, truthful voice guidance and truthful map preview.')
 
-# 4) Version bump.
+# 5) Version bump.
 pubspec = root / 'pubspec.yaml'
 p = pubspec.read_text(encoding='utf-8')
 if p.count('version: 0.11.0+11') != 1:
