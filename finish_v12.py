@@ -24,7 +24,7 @@ replacements = {
     "final districtController = TextEditingController(text: 'شملان');": "final districtController = TextEditingController();",
     "final streetController = TextEditingController(text: 'شارع الثلاثين');": "final streetController = TextEditingController();",
     "final landmarkController = TextEditingController(text: 'جوار مدرسة الوحدة');": "final landmarkController = TextEditingController();",
-    "final detailsController =\n      TextEditingController(text: 'البيت ذو الباب الأخضر');": "final detailsController = TextEditingController();",
+    "final detailsController = TextEditingController(text: 'البيت ذو الباب الأخضر');": "final detailsController = TextEditingController();",
     "Text('قل العنوان بدل الكتابة',": "Text('اكتب العنوان أو اسمع الإرشاد',",
     "Text('مثال: صنعاء، شملان، جوار مدرسة الوحدة',": "Text('الإملاء الصوتي غير متصل بعد؛ لن يشغّل هذا الزر الميكروفون.',",
     "TextButton(\n                    onPressed: _simulateVoiceAddress,\n                    child: const Text('تكلّم')),": "const ReadAloudButton(\n                  key: ValueKey('address-audio-guide'),\n                  label: 'اسمع الطريقة',\n                  text:\n                      'اكتب المحافظة أو المدينة، ثم المنطقة أو الحي، ثم الشارع وأقرب معلم معروف، وبعدها صف الباب أو المنزل باختصار. هذه النسخة لا تستمع إلى الميكروفون ولا تحفظ موقعًا حقيقيًا على الخريطة.',\n                ),",
