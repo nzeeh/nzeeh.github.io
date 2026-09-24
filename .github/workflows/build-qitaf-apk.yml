@@ -124,8 +124,9 @@ jobs:
       - name: Prepare full package
         run: |
           cp CHANGELOG_V0.12_AR.txt qitaf-v12-output/
+          cp USAGE_V0.12_AR.txt qitaf-v12-output/
           cd qitaf-v12-output
-          zip -q -9 qitaf-demo-v0.12-package.zip qitaf-demo-v0.12.apk qitaf-demo-v0.12.sha256 APK_SIGNATURE.txt UPGRADE_COMPATIBILITY.txt BUILD_INFO.txt CHANGELOG_V0.12_AR.txt SOURCE_CLEANUP.txt DART_FIX.txt ANALYZE.txt TEST_RESULTS.txt qitaf-flutter-source-v0.12.zip qitaf-web-v0.12.zip
+          zip -q -9 qitaf-demo-v0.12-package.zip qitaf-demo-v0.12.apk qitaf-demo-v0.12.sha256 APK_SIGNATURE.txt UPGRADE_COMPATIBILITY.txt BUILD_INFO.txt CHANGELOG_V0.12_AR.txt USAGE_V0.12_AR.txt SOURCE_CLEANUP.txt DART_FIX.txt ANALYZE.txt TEST_RESULTS.txt qitaf-flutter-source-v0.12.zip qitaf-web-v0.12.zip
           sha256sum qitaf-demo-v0.12-package.zip > qitaf-demo-v0.12-package.sha256
       - name: Upload tested v0.12 files
         uses: actions/upload-artifact@v4
@@ -146,6 +147,7 @@ jobs:
           cp qitaf-v12-output/qitaf-web-v0.12.zip qitaf-build/
           cp qitaf-v12-output/BUILD_INFO.txt qitaf-build/BUILD_INFO_V0.12.txt
           cp qitaf-v12-output/CHANGELOG_V0.12_AR.txt qitaf-build/
+          cp qitaf-v12-output/USAGE_V0.12_AR.txt qitaf-build/
           cp qitaf-v12-output/APK_SIGNATURE.txt qitaf-build/APK_SIGNATURE_V0.12.txt
           cp qitaf-v12-output/UPGRADE_COMPATIBILITY.txt qitaf-build/UPGRADE_COMPATIBILITY_V0.12.txt
           cp qitaf-v12-output/SOURCE_CLEANUP.txt qitaf-build/SOURCE_CLEANUP_V0.12.txt
@@ -154,7 +156,7 @@ jobs:
           cp qitaf-v12-output/TEST_RESULTS.txt qitaf-build/TEST_RESULTS_V0.12.txt
           git config user.name 'Qitaf Build Bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add qitaf-build/qitaf-demo-v0.12.apk qitaf-build/qitaf-demo-v0.12.sha256 qitaf-build/qitaf-demo-v0.12-package.zip qitaf-build/qitaf-demo-v0.12-package.sha256 qitaf-build/qitaf-flutter-source-v0.12.zip qitaf-build/qitaf-web-v0.12.zip qitaf-build/BUILD_INFO_V0.12.txt qitaf-build/CHANGELOG_V0.12_AR.txt qitaf-build/APK_SIGNATURE_V0.12.txt qitaf-build/UPGRADE_COMPATIBILITY_V0.12.txt qitaf-build/SOURCE_CLEANUP_V0.12.txt qitaf-build/DART_FIX_V0.12.txt qitaf-build/ANALYZE_V0.12.txt qitaf-build/TEST_RESULTS_V0.12.txt
+          git add qitaf-build/qitaf-demo-v0.12.apk qitaf-build/qitaf-demo-v0.12.sha256 qitaf-build/qitaf-demo-v0.12-package.zip qitaf-build/qitaf-demo-v0.12-package.sha256 qitaf-build/qitaf-flutter-source-v0.12.zip qitaf-build/qitaf-web-v0.12.zip qitaf-build/BUILD_INFO_V0.12.txt qitaf-build/CHANGELOG_V0.12_AR.txt qitaf-build/USAGE_V0.12_AR.txt qitaf-build/APK_SIGNATURE_V0.12.txt qitaf-build/UPGRADE_COMPATIBILITY_V0.12.txt qitaf-build/SOURCE_CLEANUP_V0.12.txt qitaf-build/DART_FIX_V0.12.txt qitaf-build/ANALYZE_V0.12.txt qitaf-build/TEST_RESULTS_V0.12.txt
           if git diff --cached --quiet; then
             echo 'No v0.12 publish changes.'
           else
