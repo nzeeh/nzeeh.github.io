@@ -1,0 +1,15 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
+const html=fs.readFileSync(path.resolve(__dirname,'../index.html'),'utf8');
+let count=0;const test=(name,fn)=>{fn();count++;console.log('PASS '+name)};
+test('Arabic RTL preserved',()=>{assert.match(html,/<html lang="ar" dir="rtl">/);});
+test('viewport-fit cover preserved',()=>assert.match(html,/viewport-fit=cover/));
+test('visible preview is 2.3.7',()=>assert.match(html,/معاينة 2\.3\.7/));
+test('revision date is 24 September 2026',()=>assert.match(html,/الخميس 24 سبتمبر 2026 · 2\.3\.7/));
+test('safe-area CSS loaded',()=>assert.match(html,/safe-area-2\.3\.7\.css\?v=2\.3\.7/));
+test('2.3.7 household script loaded',()=>assert.match(html,/household-message-summary-2\.3\.7\.js\?v=2\.3\.7/));
+test('old 2.3.6 household script not loaded',()=>assert.doesNotMatch(html,/household-message-summary-2\.3\.6\.js/));
+test('Android install attribute preserved',()=>assert.match(html,/data-platform="android"/));
+test('Apple install attribute preserved',()=>assert.match(html,/data-platform="apple"/));
+test('no Unicode replacement characters',()=>assert.doesNotMatch(html,/�/));
+console.log('\n'+count+' index-integrity tests passed.');
