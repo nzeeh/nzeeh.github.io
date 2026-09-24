@@ -55,7 +55,6 @@ if len(button_pattern.findall(s)) != 1:
     raise RuntimeError('voice demo button not found exactly once')
 s = button_pattern.sub(spoken, s, count=1)
 
-# Remove the old fake speech-recognition simulation and its fake listening dialog.
 voice_method = re.compile(r"\n  Future<void> _simulateVoiceAddress\(\) async \{.*?\n  \}\n\n  void _continue\(\)", re.S)
 if len(voice_method.findall(s)) != 1:
     raise RuntimeError('voice simulation method not found exactly once')
@@ -69,48 +68,42 @@ s = listening_dialog.sub("\n", s, count=1)
 checkout.write_text(s, encoding='utf-8')
 log.append('checkout_flow.dart: blank recipient/address fields by default; fake speech recognition removed; optional Arabic read-aloud guidance and truthful map preview added.')
 
-# 3) Keep the existing checkout widget test meaningful after replacing fake
-# speech recognition with read-aloud guidance. The reconstructed suite is built
-# from overlays, so locate the legacy test across every Dart test file instead
-# of assuming it lives in widget_test.dart. Require exactly one match.
-title_text = 'checkout offers accessibility shortcut for voice address'
+# 3) Align one pre-existing widget test with the truthful UI. Overlay-generated
+# tests can move between files, so search all tests for the exact stale visible
+# expectation rather than a file name or test title. Require exactly one hit.
+needle_text = "expect(find.text('تكلّم'), findsOneWidget);"
 matches = []
 for candidate in sorted((root / 'test').rglob('*.dart')):
     text = candidate.read_text(encoding='utf-8')
-    if title_text in text:
+    if needle_text in text:
         matches.append((candidate, text))
 if len(matches) != 1:
     found = ', '.join(str(path.relative_to(root)) for path, _ in matches) or 'none'
-    raise RuntimeError(f'expected exactly one legacy checkout voice-address test, found {len(matches)}: {found}')
+    raise RuntimeError(f'expected exactly one stale voice-address assertion, found {len(matches)}: {found}')
 widget_test, wt = matches[0]
-title_at = wt.find(title_text)
-start = wt.rfind('testWidgets(', 0, title_at)
+needle_at = wt.find(needle_text)
+start = wt.rfind('testWidgets(', 0, needle_at)
 if start < 0:
     raise RuntimeError(f'legacy checkout voice-address test start not found in {widget_test}')
-# Find the next sibling test (testWidgets or test), otherwise the enclosing main close.
+# Find the next sibling test; otherwise use the enclosing main close.
 boundaries = []
 for marker in ('\n  testWidgets(', '\n  test('):
-    pos = wt.find(marker, title_at + len(title_text))
+    pos = wt.find(marker, needle_at + len(needle_text))
     if pos >= 0:
         boundaries.append(pos)
 main_close = wt.rfind('\n}')
-if main_close > title_at:
+if main_close > needle_at:
     boundaries.append(main_close)
 if not boundaries:
     raise RuntimeError(f'could not determine legacy checkout widget-test boundary in {widget_test}')
 end = min(boundaries)
 block = wt[start:end]
-needle_text = "expect(find.text('تكلّم'), findsOneWidget);"
-needle_at = block.find(needle_text)
-if needle_at < 0:
-    raise RuntimeError(f'legacy voice-address expectation not found in {widget_test}')
-line_start = block.rfind('\n', 0, needle_at) + 1
-# Keep navigation/setup intact, replace only the stale fake-dictation assertion tail.
-prefix = block[:line_start].replace(
-    title_text,
-    'checkout offers truthful read-aloud address guidance',
-    1,
-)
+local_needle = block.find(needle_text)
+if local_needle < 0:
+    raise RuntimeError(f'legacy voice-address expectation escaped test boundary in {widget_test}')
+line_start = block.rfind('\n', 0, local_needle) + 1
+# Preserve navigation/setup and only replace stale assertions after reaching address step.
+prefix = block[:line_start]
 replacement_block = prefix + """    expect(find.text('اسمع الطريقة'), findsOneWidget);
     expect(
       find.text('الإملاء الصوتي غير متصل بعد؛ لن يشغّل هذا الزر الميكروفون.'),
@@ -120,7 +113,7 @@ replacement_block = prefix + """    expect(find.text('اسمع الطريقة'),
 """
 wt = wt[:start] + replacement_block + wt[end:]
 widget_test.write_text(wt, encoding='utf-8')
-log.append(f'{widget_test.relative_to(root)}: stale fake-dictation checkout test updated to verify truthful read-aloud guidance without bypassing the checkout flow.')
+log.append(f'{widget_test.relative_to(root)}: stale fake-dictation assertion updated to verify truthful read-aloud guidance without bypassing checkout navigation.')
 
 # 4) Regression tests for trust/accessibility behavior.
 test_file = root / 'test/v12_address_truth_accessibility_source_test.dart'
