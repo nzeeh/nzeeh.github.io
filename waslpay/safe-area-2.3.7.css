@@ -1,0 +1,5 @@
+/* WaslPay 2.3.7 — keep full-width demo chrome inside device safe areas. */
+.demo-ribbon{
+  padding-left:max(12px,env(safe-area-inset-left));
+  padding-right:max(12px,env(safe-area-inset-right));
+}
