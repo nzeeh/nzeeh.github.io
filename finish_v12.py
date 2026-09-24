@@ -70,30 +70,43 @@ checkout.write_text(s, encoding='utf-8')
 log.append('checkout_flow.dart: blank recipient/address fields by default; fake speech recognition removed; optional Arabic read-aloud guidance and truthful map preview added.')
 
 # 3) Keep the existing checkout widget test meaningful after replacing fake
-# speech recognition with read-aloud guidance. Find it by its title text rather
-# than formatting, preserve the real navigation steps, and replace only the old
-# fake-dictation assertions. Do not invoke the platform TTS plugin in CI.
-widget_test = root / 'test/widget_test.dart'
-wt = widget_test.read_text(encoding='utf-8')
+# speech recognition with read-aloud guidance. The reconstructed suite is built
+# from overlays, so locate the legacy test across every Dart test file instead
+# of assuming it lives in widget_test.dart. Require exactly one match.
 title_text = 'checkout offers accessibility shortcut for voice address'
+matches = []
+for candidate in sorted((root / 'test').rglob('*.dart')):
+    text = candidate.read_text(encoding='utf-8')
+    if title_text in text:
+        matches.append((candidate, text))
+if len(matches) != 1:
+    found = ', '.join(str(path.relative_to(root)) for path, _ in matches) or 'none'
+    raise RuntimeError(f'expected exactly one legacy checkout voice-address test, found {len(matches)}: {found}')
+widget_test, wt = matches[0]
 title_at = wt.find(title_text)
-if title_at < 0:
-    raise RuntimeError('legacy checkout voice-address test title text not found')
 start = wt.rfind('testWidgets(', 0, title_at)
 if start < 0:
-    raise RuntimeError('legacy checkout voice-address test start not found')
-next_test = wt.find('\n  testWidgets(', title_at)
-end = next_test if next_test >= 0 else wt.rfind('\n}')
-if end <= start:
-    raise RuntimeError('could not determine legacy checkout widget-test boundary')
+    raise RuntimeError(f'legacy checkout voice-address test start not found in {widget_test}')
+# Find the next sibling test (testWidgets or test), otherwise the enclosing main close.
+boundaries = []
+for marker in ('\n  testWidgets(', '\n  test('):
+    pos = wt.find(marker, title_at + len(title_text))
+    if pos >= 0:
+        boundaries.append(pos)
+main_close = wt.rfind('\n}')
+if main_close > title_at:
+    boundaries.append(main_close)
+if not boundaries:
+    raise RuntimeError(f'could not determine legacy checkout widget-test boundary in {widget_test}')
+end = min(boundaries)
 block = wt[start:end]
 needle_text = "expect(find.text('تكلّم'), findsOneWidget);"
 needle_at = block.find(needle_text)
 if needle_at < 0:
-    raise RuntimeError('legacy voice-address expectation not found')
+    raise RuntimeError(f'legacy voice-address expectation not found in {widget_test}')
 line_start = block.rfind('\n', 0, needle_at) + 1
-prefix = block[:line_start]
-prefix = prefix.replace(
+# Keep navigation/setup intact, replace only the stale fake-dictation assertion tail.
+prefix = block[:line_start].replace(
     title_text,
     'checkout offers truthful read-aloud address guidance',
     1,
@@ -107,7 +120,7 @@ replacement_block = prefix + """    expect(find.text('اسمع الطريقة'),
 """
 wt = wt[:start] + replacement_block + wt[end:]
 widget_test.write_text(wt, encoding='utf-8')
-log.append('widget_test.dart: stale fake-dictation checkout test updated to verify truthful read-aloud guidance without bypassing the checkout flow.')
+log.append(f'{widget_test.relative_to(root)}: stale fake-dictation checkout test updated to verify truthful read-aloud guidance without bypassing the checkout flow.')
 
 # 4) Regression tests for trust/accessibility behavior.
 test_file = root / 'test/v12_address_truth_accessibility_source_test.dart'
@@ -146,7 +159,7 @@ void main() {
   });
 }
 ''', encoding='utf-8')
-log.append('v12_address_truth_accessibility_source_test.dart: three regression tests added for blank demo fields, truthful voice guidance and truthful map preview.')
+log.append('test/v12_address_truth_accessibility_source_test.dart: three regression tests added for blank demo fields, truthful voice guidance and truthful map preview.')
 
 # 5) Version bump.
 pubspec = root / 'pubspec.yaml'
