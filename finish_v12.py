@@ -70,27 +70,32 @@ checkout.write_text(s, encoding='utf-8')
 log.append('checkout_flow.dart: blank recipient/address fields by default; fake speech recognition removed; optional Arabic read-aloud guidance and truthful map preview added.')
 
 # 3) Keep the existing checkout widget test meaningful after replacing fake
-# speech recognition with read-aloud guidance. Preserve its navigation steps,
-# then verify the new visible shortcut/copy without invoking the platform TTS plugin.
+# speech recognition with read-aloud guidance. Find it by its title text rather
+# than formatting, preserve the real navigation steps, and replace only the old
+# fake-dictation assertions. Do not invoke the platform TTS plugin in CI.
 widget_test = root / 'test/widget_test.dart'
 wt = widget_test.read_text(encoding='utf-8')
-old_title = "testWidgets('checkout offers accessibility shortcut for voice address'"
-start = wt.find(old_title)
+title_text = 'checkout offers accessibility shortcut for voice address'
+title_at = wt.find(title_text)
+if title_at < 0:
+    raise RuntimeError('legacy checkout voice-address test title text not found')
+start = wt.rfind('testWidgets(', 0, title_at)
 if start < 0:
-    raise RuntimeError('legacy checkout voice-address widget test not found')
-next_test = wt.find("\n  testWidgets(", start + len(old_title))
-end = next_test if next_test >= 0 else wt.rfind("\n}")
+    raise RuntimeError('legacy checkout voice-address test start not found')
+next_test = wt.find('\n  testWidgets(', title_at)
+end = next_test if next_test >= 0 else wt.rfind('\n}')
 if end <= start:
     raise RuntimeError('could not determine legacy checkout widget-test boundary')
 block = wt[start:end]
-needle = "    expect(find.text('تكلّم'), findsOneWidget);"
-needle_at = block.find(needle)
+needle_text = "expect(find.text('تكلّم'), findsOneWidget);"
+needle_at = block.find(needle_text)
 if needle_at < 0:
     raise RuntimeError('legacy voice-address expectation not found')
-prefix = block[:needle_at]
+line_start = block.rfind('\n', 0, needle_at) + 1
+prefix = block[:line_start]
 prefix = prefix.replace(
-    "testWidgets('checkout offers accessibility shortcut for voice address'",
-    "testWidgets('checkout offers truthful read-aloud address guidance'",
+    title_text,
+    'checkout offers truthful read-aloud address guidance',
     1,
 )
 replacement_block = prefix + """    expect(find.text('اسمع الطريقة'), findsOneWidget);
@@ -102,7 +107,7 @@ replacement_block = prefix + """    expect(find.text('اسمع الطريقة'),
 """
 wt = wt[:start] + replacement_block + wt[end:]
 widget_test.write_text(wt, encoding='utf-8')
-log.append('widget_test.dart: stale fake-dictation checkout test updated to verify truthful read-aloud guidance without bypassing the flow.')
+log.append('widget_test.dart: stale fake-dictation checkout test updated to verify truthful read-aloud guidance without bypassing the checkout flow.')
 
 # 4) Regression tests for trust/accessibility behavior.
 test_file = root / 'test/v12_address_truth_accessibility_source_test.dart'
