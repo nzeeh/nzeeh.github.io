@@ -1,0 +1,4 @@
+checkout_flow.dart: blank recipient/address fields by default; fake speech recognition removed; optional Arabic read-aloud guidance and truthful map preview added.
+tests: no stale fake-dictation assertion existed in this source snapshot; no legacy test rewrite was needed.
+test/v12_address_truth_accessibility_source_test.dart: three regression tests added for blank demo fields, truthful voice guidance and truthful map preview.
+pubspec.yaml: version 0.12.0+12.
