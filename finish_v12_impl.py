@@ -157,74 +157,7 @@ void main() {
 ''', encoding='utf-8')
 log.append('test/v12_address_truth_accessibility_source_test.dart: three regression tests added for blank demo fields, truthful voice guidance and truthful map preview.')
 
-
-# 5) Remove unsupported verification cue from the buyer feed.
-feed = root / 'lib/features/feed/feed_screen.dart'
-f = feed.read_text(encoding='utf-8')
-verified_block = re.compile(
-    r"\n\s+if \(product\.isVerified\) \.\.\.\[\s*\n\s+const SizedBox\(width: 6\),\s*\n\s+const Icon\(Icons\.verified_rounded,\s*\n\s+color: Color\(0xFFFFD269\), size: 19\),\s*\n\s+\],",
-    re.S,
-)
-if len(verified_block.findall(f)) != 1:
-    raise RuntimeError(
-        f'feed verification cue: expected one, found {len(verified_block.findall(f))}'
-    )
-f = verified_block.sub('', f, count=1)
-feed.write_text(f, encoding='utf-8')
-log.append('feed_screen.dart: removed unsupported verification icon from demo farmer identity in the buyer feed.')
-
-# 6) Make the final checkout screen truthful and preserve the local cart.
-s = checkout.read_text(encoding='utf-8')
-truth_replacements = {
-    "const Text('تم تأكيد طلبك',": "const Text('معاينة الطلب جاهزة',",
-    "'طريقة الدفع: $methodLabel\\nسيظهر للمزارع الآن ليبدأ التجهيز، ويمكنك متابعة الحالة من حسابك.',":
-        "'طريقة الدفع المعروضة: $methodLabel\\nلم يُنشأ طلب حقيقي ولم يصل شيء إلى المزارع. سلتك محفوظة ويمكنك الرجوع إليها أو مواصلة التصفح.',",
-    "child: const Text('رقم الطلب: QTF-2026-0184',":
-        "child: const Text('معاينة فقط • لا يوجد رقم طلب حقيقي',",
-    "AppScope.of(context).clearCart();\\n                    Navigator.of(context).popUntil((route) => route.isFirst);":
-        "Navigator.of(context).popUntil((route) => route.isFirst);",
-    "child: const Text('العودة إلى البثوث'),":
-        "child: const Text('العودة إلى المقاطع'),",
-}
-for old, new in truth_replacements.items():
-    if s.count(old) != 1:
-        raise RuntimeError(
-            f'checkout truth phrase {old!r}: expected one, found {s.count(old)}'
-        )
-    s = s.replace(old, new, 1)
-checkout.write_text(s, encoding='utf-8')
-log.append('checkout_flow.dart: final demo step no longer claims a confirmed order, farmer notification or real order number; returning no longer clears the local cart.')
-
-trust_test = root / 'test/v12_checkout_feed_truth_test.dart'
-trust_test.write_text(r'''import 'dart:io';
-
-import 'package:flutter_test/flutter_test.dart';
-
-void main() {
-  test('buyer feed has no unsupported verification badge', () {
-    final source = File('lib/features/feed/feed_screen.dart').readAsStringSync();
-    expect(source, isNot(contains('Icons.verified_rounded')));
-    expect(source, isNot(contains('if (product.isVerified)')));
-  });
-
-  test('checkout completion stays a demo and preserves the cart', () {
-    final source =
-        File('lib/features/checkout/checkout_flow.dart').readAsStringSync();
-    expect(source, contains('معاينة الطلب جاهزة'));
-    expect(source, contains('لم يُنشأ طلب حقيقي ولم يصل شيء إلى المزارع'));
-    expect(source, contains('معاينة فقط • لا يوجد رقم طلب حقيقي'));
-    expect(source, contains('العودة إلى المقاطع'));
-    expect(source, isNot(contains('تم تأكيد طلبك')));
-    expect(source, isNot(contains('QTF-2026-0184')));
-    expect(source, isNot(contains('سيظهر للمزارع الآن')));
-    expect(source, isNot(contains('AppScope.of(context).clearCart();')));
-  });
-}
-''', encoding='utf-8')
-log.append('test/v12_checkout_feed_truth_test.dart: regression tests added for feed verification and truthful cart-preserving checkout completion.')
-
-
-# 7) Version bump.
+# 5) Version bump.
 pubspec = root / 'pubspec.yaml'
 p = pubspec.read_text(encoding='utf-8')
 if p.count('version: 0.11.0+11') != 1:
